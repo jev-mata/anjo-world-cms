@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 
 export default function Create() {
@@ -83,8 +83,8 @@ export default function Create() {
 
 
     const addHighSchoolQuestion = () => {
-        setElementaryData('questions', [
-            ...elementaryData.questions,
+        setHighschoolData('questions', [
+            ...highschoolData.questions,
             {
                 question: '',
                 choices: [
@@ -136,16 +136,18 @@ export default function Create() {
         }));
         setHighschoolData('questions', updated);
     };
+    useEffect(() => {
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
- 
+
         setData({
             group: [
                 elementaryData,
                 highschoolData
             ]
         })
+    }, [highschoolData, elementaryData]);
+    const handleSubmit = (e) => {
+        e.preventDefault();
         post(route('projects.store'), {
             group: [
                 elementaryData,
@@ -161,12 +163,12 @@ export default function Create() {
     const removeQuestion = (index) => {
         const updated = [...elementaryData.questions];
         updated.splice(index, 1);
-        setData('questions', updated);
+        setElementaryData('questions', updated);
     };
     const removeQuestion2 = (index) => {
         const updated = [...highschoolData.questions];
         updated.splice(index, 1);
-        setData('questions', updated);
+        setHighschoolData('questions', updated);
     };
 
     return (
@@ -348,7 +350,7 @@ export default function Create() {
                             <div key={index} className="relative  p-4 border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md space-y-4 mb-2">
                                 <button
                                     type="button"
-                                    onClick={() => removeQuestion(index)}
+                                    onClick={() => removeQuestion2(index)}
                                     className="absolute top-2 right-2 text-sm text-red-500 hover:underline"
                                 >
                                     Remove

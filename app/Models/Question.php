@@ -10,17 +10,17 @@ class Question extends Model
     use HasFactory;
 
     protected $fillable = [
-        'project_id',
-        'question', 
+        'contents_id',
+        'question',
     ];
 
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class, 'contents_id', 'id');
     }
     public function answers()
     {
-        return $this->hasMany(Answer::class);
+        return $this->hasMany(Answer::class, 'question_id', 'id');
     }
 
 }

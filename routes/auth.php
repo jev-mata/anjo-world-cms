@@ -35,7 +35,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/projects/view/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::get('/projects/edit/{project}', [ProjectController::class, 'edit_show'])->name('projects.edit.show');
-    Route::post('/projects/edit/{project}', [ProjectController::class, 'edit_save'])->name('projects.edit.save');
+    Route::post('/projects/edit', [ProjectController::class, 'edit_save'])->name('projects.edit.save');
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 

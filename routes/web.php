@@ -1,24 +1,20 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Models\GroupContents;
 use App\Models\Project;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect('/dashboard');
 }); 
 Route::get('/dashboard', function () {
-    $projects = Project::with('questions.answers')->get();
+    $projects = GroupContents::with('projects.questions.answers')->get();
      
     return inertia('Dashboard', [
-        'projects' => $projects,
+        'groupcontents' => $projects,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

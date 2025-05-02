@@ -12,12 +12,18 @@ class Project extends Model
     protected $fillable = [
         'title',
         'description',
+        'group_contents_id',
         'video',
         'image_path',
     ];
 
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->hasMany(Question::class,'contents_id','id');
     }
+    public function group_contents()
+    {
+        return $this->belongsTo(GroupContents::class);
+    }
+    
 }

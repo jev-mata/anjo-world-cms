@@ -5,11 +5,24 @@ import { QRCodeSVG } from 'qrcode.react';
 import Edit from './CMS/edit';
 import Create from './CMS/create';
 
-export default function Dashboard({ projects }) {
+export default function Dashboard({ groupcontents }) {
 
     useEffect(() => {
-        console.log(projects);
+        console.log(Array.isArray(groupcontents) ? groupcontents.map((content) => ({
+            id: content.id,
+            projects: content.projects
+        })) : null);
     }, [])
+    const [projects, setProjects] = useState(Array.isArray(groupcontents) ? groupcontents.map((content) => ({
+        id: content.id,
+        projects: content.projects
+    })) : []);
+    useEffect(() => {
+        setProjects(Array.isArray(groupcontents) ? groupcontents.map((content) => ({ 
+            id: content.id,
+            projects: content.projects
+        })) : []);
+    }, [groupcontents])
     const [qrSelected, setQrSelected] = useState('');
     const [projectSelected, setProjectSelected] = useState(null);
     const [openAdd, setopenAdd] = useState(false);
@@ -52,14 +65,14 @@ export default function Dashboard({ projects }) {
                     {Array.isArray(projects) && projects.map((project, index) => (
                         <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex" key={index}>
                             <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
-                                {project.title}
+                                {project.projects[0].title}
                             </div>
                             {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
-                                {project.description}
+                                {project[0].description}
                             </div> */}
                             <div className="p-4 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
                                 <button className="p-2  bg-green-900 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    onClick={() => setProjectSelected(project)}
+                                    onClick={() => setProjectSelected(project.projects)}
                                 >Edit</button>
                                 <button className="p-2 mx-1 bg-red-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700">Delete</button>
                                 <Link
@@ -120,7 +133,7 @@ export default function Dashboard({ projects }) {
                 }}>
                     <div style={{
 
-                        width: '40%',
+                        width: 'auto',
                         position: 'fixed',
                         left: '50%',
                         top: '50%',
@@ -146,7 +159,7 @@ export default function Dashboard({ projects }) {
 
                         width: '70%',
                         position: 'fixed',
-                        height:'90vh',
+                        height: '90vh',
                         left: '50%',
                         top: '50%',
                         transform: 'translate(-50%,-50%)',
