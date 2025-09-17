@@ -1,433 +1,233 @@
-import { useEffect, useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useEffect, useState } from "react";
+import NewForm from "./Form/NewForm";
+import toast from "react-hot-toast";
 
 export default function Edit({ projectSelected }) {
-    const {
-        data: elementaryData,
-        setData: setElementaryData,
-        post: postElementary,
-        processing: elementaryProcessing,
-        errors: elementaryErrors,
-        reset: resetElementary,
-    } = useForm({
-        title: '',
-        description: '',
-        video: '',
-        image: null,
-        questions: [
-            {
-                question: '',
-                answers: [
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                ],
-            },
-        ],
-    });
-
-    const {
-        data: highschoolData,
-        setData: setHighschoolData,
-        post: postHighschool,
-        processing: highschoolProcessing,
-        errors: highschoolErrors,
-        reset: resetHighschool,
-    } = useForm({
-        title: '',
-        description: '',
-        video: '',
-        image: null,
-        questions: [
-            {
-                question: '',
-                answers: [
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                ],
-            },
-        ],
-    });
-
-    const {
-        data: data,
-        setData: setData,
-        post: post,
-        processing: processing,
-        errors: errors,
-        reset: reset,
-    } = useForm({
-        group: [
-            elementaryData,
-            highschoolData
-        ]
-    });
-
-    const addElementaryQuestion = () => {
-        setElementaryData('questions', [
-            ...elementaryData.questions,
-            {
-                question: '',
-                answers: [
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                ],
-            },
-        ]);
-    };
-
-
-    const addHighSchoolQuestion = () => {
-        setHighschoolData('questions', [
-            ...highschoolData.questions,
-            {
-                question: '',
-                answers: [
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                    { text: '', is_correct: false },
-                ],
-            },
-        ]);
-    };
-    const handleElementaryQuestionChange = (index, field, value) => {
-        const updated = [...elementaryData.questions];
-        updated[index][field] = value;
-        setElementaryData('questions', updated);
-    };
-
-    const handleElementaryChoiceChange = (qIndex, cIndex, value) => {
-        const updated = [...elementaryData.questions];
-        updated[qIndex].answers[cIndex].text = value;
-        setElementaryData('questions', updated);
-    };
-
-    const handleElementaryCorrectAnswerChange = (qIndex, correctIndex) => {
-        const updated = [...elementaryData.questions];
-        updated[qIndex].answers = updated[qIndex].answers.map((choice, i) => ({
-            ...choice,
-            is_correct: i === correctIndex,
-        }));
-        setElementaryData('questions', updated);
-    };
-    const handleHighschoolQuestionChange = (index, field, value) => {
-        const updated = [...highschoolData.questions];
-        updated[index][field] = value;
-        setHighschoolData('questions', updated);
-    };
-
-    const handleHighschoolChoiceChange = (qIndex, cIndex, value) => {
-        const updated = [...highschoolData.questions];
-        updated[qIndex].answers[cIndex].text = value;
-        setHighschoolData('questions', updated); 
-    };
-
-    const handleHighschoolCorrectAnswerChange = (qIndex, correctIndex) => {
-        const updated = [...highschoolData.questions];
-        updated[qIndex].answers = updated[qIndex].answers.map((choice, i) => ({
-            ...choice,
-            is_correct: i === correctIndex,
-        }));
-        setHighschoolData('questions', updated); 
-
-    };
-    useEffect(() => {
-        setData({
-            group: [
-                elementaryData,
-                highschoolData
-            ]
-        }) 
-    }, [highschoolData, elementaryData]);
- 
-
-    useEffect(() => {
-        if (Array.isArray(projectSelected) && projectSelected) {
-
-            setElementaryData(projectSelected[0]);
-            if (projectSelected.length > 1)
-                setHighschoolData(projectSelected[1]);
+    const [tabs, setTabs] = useState([
+        {
+            id: null,
+            tab_title: "Tab 1",
+            title: "",
+            description: "",
+            video: "",
+            color: "",
+            image: null,
+            image_path: null,
+            topics: []
         }
-        console.log(projectSelected);
-    }, [projectSelected]);
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post(route('projects.edit.save'), {
-            group: [
-                elementaryData,
-                highschoolData
-            ]
+    ]);
+    const [removedTabID, setRemovedTabID] = useState([]);
+    const [activeTab, setActiveTab] = useState(0);
+    const [contentTitle, setContentTitle] = useState("");
+
+    const [removedTopics, setRemovedTopics] = useState([]);
+    // Add new tab
+    const addTab = () => {
+        setTabs([
+            ...tabs,
+            {
+                id: null,
+                tab_title: "Tab " + (tabs.length + 1),
+                title: "",
+                description: "",
+                video: "",
+                color: "",
+                image: null,
+                topics: []
+            }
+        ]);
+        setActiveTab(tabs.length);
+    };
+
+    useEffect(() => {
+        fetchData(projectSelected);
+    }, [projectSelected])
+    useEffect(() => {
+        console.log(tabs);
+    }, [tabs])
+    const fetchData = async (id) => {
+        try {
+            const res = await axios.get(`/projects/${id}`, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            if (res.data.projects.length != 0)
+                setTabs(res.data.projects);
+            setContentTitle(res.data.title);
+        } catch (err) {
+            console.error("Error:", err.response?.data || err);
+        }
+    };
+
+    // Remove a tab
+    const removeTab = (index, tabID) => {
+        if (tabs.length === 1) return; // don’t allow removing last tab
+        const updatedTabs = tabs.filter((_, i) => i !== index);
+        setRemovedTabID((prev) => [...prev, tabID]);
+
+        setTabs(updatedTabs);
+        setActiveTab(Math.max(0, index - 1));
+    };
+    const appendTopicsToFormData = (formData, topics, prefix = "topics") => {
+        topics.forEach((topic, i) => {
+            const baseKey = `${prefix}[${i}]`;
+
+            // append normal fields
+            formData.append(`${baseKey}[id]`, topic.id ?? "");
+            formData.append(`${baseKey}[title]`, topic.title ?? "");
+            formData.append(`${baseKey}[description]`, topic.description ?? "");
+            formData.append(`${baseKey}[color]`, topic.color ?? "");
+            formData.append(`${baseKey}[video]`, topic.video ?? "");
+            formData.append("removed_topics", JSON.stringify(removedTopics));
+            // append image if it's a File
+            if (topic.image instanceof File) {
+                formData.append(`${baseKey}[image_path]`, topic.image);
+            } else if (typeof topic.image_path === "string") {
+                // keep existing string path if already saved
+                formData.append(`${baseKey}[image_path]`, topic.image);
+            }
+
+            // recursive append for subtopics
+            if (Array.isArray(topic.topics) && topic.topics.length > 0) {
+                appendTopicsToFormData(formData, topic.topics, `${baseKey}[topics]`);
+            }
         });
-
-
     };
-
-
-
-    const removeQuestion = (index) => {
-        const updated = [...elementaryData.questions];
-        updated.splice(index, 1);
-        setElementaryData('questions', updated);
+    // Update a tab’s data when NewForm changes
+    const updateTabData = (index, field, value) => {
+        const updatedTabs = [...tabs];
+        updatedTabs[index][field] = value;
+        setTabs(updatedTabs);
     };
-    const removeQuestion2 = (index) => {
-        const updated = [...highschoolData.questions];
-        updated.splice(index, 1);
-        setHighschoolData('questions', updated);
-    };
+    const handleSaveAll = async (e) => {
+        e.preventDefault();
+        try {
+            // Send each tab
+            for (const tab of tabs) {
+                console.log(tab);
+                const formData = new FormData();
+                formData.append("title", tab.title);
+                formData.append("id", tab.id);
+                console.log("id", tab.id);
+                formData.append("tab_title", tab.tab_title);
+                formData.append("color", tab.color);
+                formData.append("group_contents_id", projectSelected);
+                formData.append("description", tab.description);
+                formData.append("video", tab.video);
+                if (tab.image) formData.append("image", tab.image);
 
+                // recursive topics
+                if (Array.isArray(tab.topics)) {
+                    appendTopicsToFormData(formData, tab.topics);
+                }
+                await axios.post("/projects", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                console.log(removedTabID);
+                await axios.delete("/projects", {
+                    data: { ids: removedTabID },
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+
+            toast.success("✅ All tabs saved successfully!");
+        } catch (err) {
+            console.error(err.response?.data || err);
+            toast.error("❌ Failed to save some tabs!");
+        }
+    };
     return (
-        <div className=' p-6 bg-white dark:bg-gray-900 shadow rounded-lg mx-2' onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6 w-full">Create New Content</h2>
-            <form onSubmit={handleSubmit} className="  flex">
-                <div className="max-w-2xl w-full mx-auto bg-white dark:bg-gray-900 shadow rounded-lg mr-10" style={{
+        <div className="bg-white dark:bg-gray-900 shadow rounded-lg  "
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div className=" sticky -top-1 dark:bg-gray-900 bg-gray-100 px-6 z-10">
 
-                }}>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 p-5">
+                    {contentTitle}
+                </h2>
+                {/* Tabs Header */}
+                <div
+                    className=" w-full flex flex-col items-center  "
+                >
+                    <div className="flex space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-md">
+                        {tabs.map((tab, index) => (
+                            <div
+                                key={tab.id}
+                                onClick={() => setActiveTab(index)}
+                                style={{
+                                    backgroundColor: tab.color
+                                }}
+                                className={`px-4 py-2 rounded-full cursor-pointer border ${activeTab === index
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                                    }`}
+                            >{tab.tab_title || `Tab ${index + 1}`}
 
-                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6 w-full">Elementary</h2>
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                        <input
-                            type="text"
-                            value={elementaryData.title}
-                            onChange={(e) => setElementaryData('title', e.target.value)}
-                            required
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea
-                            value={elementaryData.description}
-                            onChange={(e) => setElementaryData('description', e.target.value)}
-                            required
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        ></textarea>
-                    </div>
-
-                    {/* Video */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Video URL</label>
-                        <input
-                            type="url"
-                            value={elementaryData.video}
-                            onChange={(e) => setElementaryData('video', e.target.value)}
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    {/* Image */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setElementaryData('image', e.target.files[0])}
-                            className="mt-1 block w-full text-gray-900 dark:text-gray-100"
-                        />
-                    </div>
-
-                    {/* Questions Section */}
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Questions & Answers</h3>
-
-
-                        {Array.isArray(elementaryData.questions) && elementaryData.questions.map((question, index) => (
-                            <div key={index} className="relative  p-4 border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md space-y-4 mb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => removeQuestion(index)}
-                                    className="absolute top-2 right-2 text-sm text-red-500 hover:underline"
-                                >
-                                    Remove
-                                </button>
-                                <div>
-                                    <label className="text-gray-700 dark:text-gray-300">Question {index + 1}</label>
-                                    <input
-                                        type="text"
-                                        value={question.question}
-                                        onChange={(e) =>
-                                            handleElementaryQuestionChange(index, 'question', e.target.value)
-                                        }
-                                        className="w-full mt-1 px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Choices</p>
-                                    {Array.isArray(question.answers) && question.answers.map((choice, cIndex) => (
-                                        <div key={cIndex} className="flex items-center space-x-2 ">
-                                            <input
-                                                type="text"
-                                                value={choice.text}
-                                                onChange={(e) => handleElementaryChoiceChange(index, cIndex, e.target.value)}
-                                                className="flex-1 px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                                placeholder={`Choice ${cIndex + 1}`}
-                                                required
-                                            />
-                                            <input
-                                                type="radio"
-                                                name={`Elementary-correct-${index}`}
-                                                value={choice}
-                                                checked={choice.is_correct}
-                                                onChange={() => handleElementaryCorrectAnswerChange(index, cIndex)}
-                                                className="text-indigo-600"
-                                            />
-                                            <label className="text-sm text-gray-600 dark:text-gray-300">Correct</label>
-                                        </div>
-                                    ))}
-                                </div>
+                                {tabs.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeTab(index, tab.id);
+                                        }}
+                                        className="ml-2 text-sm text-red-400 hover:text-red-600"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
                             </div>
                         ))}
-
+                        {/* Add Tab Button */}
                         <button
                             type="button"
-                            onClick={addElementaryQuestion}
-                            className="text-indigo-600 hover:underline"
+                            onClick={addTab}
+                            className="px-3 py-2 bg-green-500 text-white rounded-full  hover:bg-green-600"
                         >
-                            + Add Question
-                        </button>
-                    </div>
-
-                    {/* Submit */}
-
-
-                </div>
-                <div className="max-w-2xl relative w-full mx-auto bg-white dark:bg-gray-900 shadow rounded-lg ml-10" style={{
-
-                }}>
-                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6 w-full">High School</h2>
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                        <input
-                            type="text"
-                            value={highschoolData.title}
-                            onChange={(e) => setHighschoolData('title', e.target.value)}
-                            required
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea
-                            value={highschoolData.description}
-                            onChange={(e) => setHighschoolData('description', e.target.value)}
-                            required
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        ></textarea>
-                    </div>
-
-                    {/* Video */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Video URL</label>
-                        <input
-                            type="url"
-                            value={highschoolData.video}
-                            onChange={(e) => setHighschoolData('video', e.target.value)}
-                            className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    {/* Image */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setHighschoolData('image', e.target.files[0])}
-                            className="mt-1 block w-full text-gray-900 dark:text-gray-100"
-                        />
-                    </div>
-
-                    {/* Questions Section */}
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Questions & Answers</h3>
-
-
-                        {Array.isArray(highschoolData.questions) && highschoolData.questions.map((question, index) => (
-                            <div key={index} className="relative  p-4 border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md space-y-4 mb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => removeQuestion2(index)}
-                                    className="absolute top-2 right-2 text-sm text-red-500 hover:underline"
-                                >
-                                    Remove
-                                </button>
-                                <div>
-                                    <label className="text-gray-700 dark:text-gray-300">Question {index + 1}</label>
-                                    <input
-                                        type="text"
-                                        value={question.question}
-                                        onChange={(e) =>
-                                            handleHighschoolQuestionChange(index, 'question', e.target.value)
-                                        }
-                                        className="w-full mt-1 px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Choices</p>
-                                    {Array.isArray(question.answers) && question.answers.map((choice, cIndex) => (
-                                        <div key={cIndex} className="flex items-center space-x-2 ">
-                                            <input
-                                                type="text"
-                                                value={choice.text}
-                                                onChange={(e) => handleHighschoolChoiceChange(index, cIndex, e.target.value)}
-                                                className="flex-1 px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                                placeholder={`Choice ${cIndex + 1}`}
-                                                required
-                                            />
-                                            <input
-                                                type="radio"
-                                                name={`Highschool-correct-${index}`}
-                                                value={choice}
-                                                checked={choice.is_correct}
-                                                onChange={() => handleHighschoolCorrectAnswerChange(index, cIndex)}
-                                                className="text-indigo-600"
-                                            />
-                                            <label className="text-sm text-gray-600 dark:text-gray-300">Correct</label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-
-                        <button
-                            type="button"
-                            onClick={addHighSchoolQuestion}
-                            className="text-indigo-600 hover:underline"
-                        >
-                            + Add Question
-                        </button>
-                    </div>
-
-                    {/* Submit */}
-
-                    <div className="pt-4 absolute -top-10 right-0">
-                        <button
-                            type="submit"
-                            disabled={elementaryProcessing || highschoolProcessing}
-                            className=" px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                        >
-                            Save Content
+                            + Add Tab
                         </button>
                     </div>
                 </div>
+            </div>
 
-            </form>
+            {/* Tab Content */}
+            {tabs.map((tab, index) => (
+                <div
+                    key={tab.id}
+                    className={`bg-white dark:bg-gray-900 max-w-2xl mx-auto rounded-lg p-5`}
+                >
+                    <div key={index} className={`${activeTab === index ? "block" : "hidden"} w-full bg-white dark:bg-gray-900 shadow   z-10  p-5`}
+
+                        style={{ backgroundColor: tabs[activeTab].color }}
+                    >
+                        <div
+                            key={tab.id}
+                            className={`bg-white dark:bg-gray-900 max-w-2xl mx-auto rounded-lg p-5`}
+                        >
+                            <NewForm
+                                handleSaveAll={handleSaveAll}
+                                projectSelected={projectSelected}
+                                tabTitle={tab.tab_title}
+                                color={tab.color}
+                                setColor={(val) => updateTabData(index, "color", val)}
+                                setTabTitle={(val) => updateTabData(index, "tab_title", val)}
+                                title={tab.title}
+                                setTitle={(val) => updateTabData(index, "title", val)}
+                                description={tab.description}
+                                setDescription={(val) => updateTabData(index, "description", val)}
+                                video={tab.video}
+                                setVideo={(val) => updateTabData(index, "video", val)}
+                                image_path={tab.image_path}
+                                image={tab.image}
+                                setImage={(file) => updateTabData(index, "image", file)}
+                                topics={tab.topics}
+                                setTopics={(val) => updateTabData(index, "topics", val)}
+
+                                setRemovedTopics={setRemovedTopics}
+                                removedTopics={removedTopics}
+                            />
+                        </div>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

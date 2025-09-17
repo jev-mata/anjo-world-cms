@@ -1,6 +1,15 @@
 import '../css/app.css';
 import './bootstrap';
-
+import "@fontsource/inter/100.css"; // Inter with variable weights
+import "@fontsource/inter/200.css"; // Inter with variable weights
+import "@fontsource/inter/300.css"; // Inter with variable weights
+import "@fontsource/inter/400.css"; // Inter with variable weights
+import "@fontsource/inter/500.css"; // Inter with variable weights
+import "@fontsource/inter/600.css"; // Inter with variable weights
+import "@fontsource/inter/700.css"; // Inter with variable weights 
+import "@fontsource/inter/800.css"; // Inter with variable weights
+import "@fontsource/inter/900.css"; // Inter with variable weights  
+import "@fontsource/inter"; // Inter with variable weights
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';

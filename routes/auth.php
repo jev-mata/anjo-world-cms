@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProjectController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -31,10 +32,8 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-
 Route::middleware('auth')->group(function () {
-    Route::get('/projects/view/{project}', [ProjectController::class, 'show'])->name('projects.show');
-    Route::get('/projects/edit/{project}', [ProjectController::class, 'edit_show'])->name('projects.edit.show');
+    Route::get('/projects/{project}', [ProjectController::class, 'edit_show'])->name('projects.edit.show');
     Route::post('/projects/edit', [ProjectController::class, 'edit_save'])->name('projects.edit.save');
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
@@ -62,6 +61,53 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::delete('/projects', [ProjectController::class, 'delete'])->name('projects.delete');
+    Route::post('/newcontent', function (Request $request) {
+        // Validate and store data
+        $validated = $request->validate([
+            'title' => 'required|string',
+        ]);
+
+        // Example: save to database
+        \App\Models\GroupContents::create($validated);
+
+        return response()->json([
+            'message' => 'Data submitted successfully!',
+            'data' => $validated,
+        ], 201);
+    });
+    Route::delete('/newcontent', function (Request $request) {
+        // Validate and store data
+        $validated = $request->validate([
+            'id' => 'required',
+        ]);
+
+        // Example: save to database
+        $groupContent = \App\Models\GroupContents::find($validated['id']);
+        $groupContent->delete();
+
+        return response()->json([
+            'message' => 'Data deleted successfully!',
+            'data' => $validated,
+        ], 201);
+    });
+
+    Route::post('/projects', [ProjectController::class, 'store']);
+    Route::delete('/newcontent', function (Request $request) {
+        // Validate and store data
+        $validated = $request->validate([
+            'id' => 'required',
+        ]);
+
+        // Example: save to database
+        $groupContent = \App\Models\GroupContents::find($validated['id']);
+        $groupContent->delete();
+
+        return response()->json([
+            'message' => 'Data deleted successfully!',
+            'data' => $validated,
+        ], 201);
+    });
 });

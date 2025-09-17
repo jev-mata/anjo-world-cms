@@ -9,6 +9,10 @@ class GroupContents extends Model
     //
      
 
+    protected $fillable = [
+        'title',
+    ];
+
     public function projects()
     {
         return $this->hasMany(Project::class);

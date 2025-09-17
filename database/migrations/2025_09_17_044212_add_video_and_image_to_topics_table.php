@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('answers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('question_id')->constrained()->onDelete('cascade');
-            $table->string('text');
-            $table->boolean('is_correct')->default(false);
-            $table->timestamps();
+        Schema::table('topics', function (Blueprint $table) {
+            //
+            $table->string('video')->nullable()->after('description');
+            $table->string('image_path')->nullable()->after('video');
         });
-        
     }
 
     /**
@@ -26,6 +23,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('answers');
+        Schema::table('topics', function (Blueprint $table) {
+            //
+            $table->dropColumn(['video', 'image_path']);
+        });
     }
 };

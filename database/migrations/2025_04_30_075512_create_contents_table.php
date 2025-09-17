@@ -11,11 +11,12 @@ return new class extends Migration
         Schema::create('contents', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->enum('type', ['elementary', 'highschool']);
+            $table->string('tab_title'); 
             $table->foreignId('group_contents_id')->constrained('group_contents')->onDelete('cascade'); // Foreign key to the project
             $table->text('description')->nullable();
             $table->string('video')->nullable(); // URL for video
             $table->string('image_path')->nullable(); // For image upload
+            $table->string('color');
             $table->timestamps();
         });
     }

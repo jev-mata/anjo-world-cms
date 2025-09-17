@@ -7,29 +7,47 @@ import Create from './CMS/create';
 
 export default function Dashboard({ groupcontents }) {
 
-    useEffect(() => {
-        console.log(Array.isArray(groupcontents) ? groupcontents.map((content) => ({
-            id: content.id,
-            projects: content.projects
-        })) : null);
-    }, [])
-    const [projects, setProjects] = useState(Array.isArray(groupcontents) ? groupcontents.map((content) => ({
-        id: content.id,
-        projects: content.projects
-    })) : []);
-    useEffect(() => {
-        setProjects(Array.isArray(groupcontents) ? groupcontents.map((content) => ({ 
-            id: content.id,
-            projects: content.projects
-        })) : []);
-    }, [groupcontents])
     const [qrSelected, setQrSelected] = useState('');
+    const [newTitle, setNewTitle] = useState('');
     const [projectSelected, setProjectSelected] = useState(null);
     const [openAdd, setopenAdd] = useState(false);
 
     useEffect(() => {
         // console.log(projectSelected);
     }, [projectSelected])
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const res = await axios.post("/newcontent", { title: newTitle });
+            if (res.status === 201) {
+                // Reload or update state
+                window.location.reload();
+                // OR better: update your state instead of full reload
+                // setItems((prev) => prev.filter(item => item.id !== id));
+            }
+        } catch (err) {
+            console.error(err.response?.data || err);
+        }
+    };
+
+    const handleDelete = async (e, id) => {
+        e.preventDefault();
+        if (id == null) return;
+        try {
+            const res = await axios.delete("/newcontent", { data: { id: id } });
+            if (res.status === 201) {
+                // Reload or update state
+                window.location.reload();
+                // OR better: update your state instead of full reload
+                // setItems((prev) => prev.filter(item => item.id !== id));
+            }
+        } catch (err) {
+            console.error(err.response?.data || err);
+        }
+    };
+
     return (
         <AuthenticatedLayout
             header={<div className="flex">
@@ -47,6 +65,18 @@ export default function Dashboard({ groupcontents }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+
+                    {openAdd &&
+                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex">
+                            <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
+
+                                <input type='text' placeholder='Topic Title' className='w-full' value={newTitle} onChange={(e) => setNewTitle(e.target.value)}></input>
+                            </div>
+                            <div className="p-6 text-gray-900 dark:text-gray-100" style={{ alignContent: 'center' }} >
+                                <button onClick={handleSubmit} className='bg-gray-300 px-5 py-3 rounded-lg dark:text-white text-gray-800'>Add</button>
+                            </div>
+                        </div>
+                    }
                     <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 flex">
                         <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
                             Title
@@ -62,28 +92,28 @@ export default function Dashboard({ groupcontents }) {
                         </div>
 
                     </div>
-                    {Array.isArray(projects) && projects.map((project, index) => (
+                    {Array.isArray(groupcontents) && groupcontents.map((groupcontent, index) => (
                         <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex" key={index}>
                             <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
-                                {project.projects[0].title}
+                                {groupcontent.title}
                             </div>
                             {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
                                 {project[0].description}
                             </div> */}
                             <div className="p-4 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
-                                <button className="p-2  bg-green-900 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    onClick={() => setProjectSelected(project.projects)}
+                                <button className="p-2 text-gray-100 bg-green-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    onClick={() => setProjectSelected(groupcontent.id)}
                                 >Edit</button>
-                                <button className="p-2 mx-1 bg-red-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700">Delete</button>
+                                <button onClick={(e) => handleDelete(e, groupcontent.id)} className="p-2 mx-1 text-gray-100 bg-red-700 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700">Delete</button>
                                 <Link
-                                    href={route('projects.show', project.id)}
+                                    href={route('projects.show', groupcontent.id)}
                                     className="p-2 mx-1 bg-blue-800 text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
                                 >
                                     View
                                 </Link>
                             </div>
                             <div className="p-6 text-gray-900 dark:text-gray-100 flex-1"  >
-                                <QRCodeSVG value={route('projects.show', project.id)} size={98} onClick={() => setQrSelected(route('projects.show', project.id))} style={{
+                                <QRCodeSVG value={route('projects.show', groupcontent.id)} size={98} onClick={() => setQrSelected(route('projects.show', groupcontent.id))} style={{
                                     borderColor: 'white',
                                     borderWidth: 5,
                                     borderStyle: 'solid'
@@ -133,17 +163,21 @@ export default function Dashboard({ groupcontents }) {
                 }}>
                     <div style={{
 
-                        width: 'auto',
+                        width: '60%',
                         position: 'fixed',
                         left: '50%',
                         top: '50%',
+                        height: '80vh',
                         transform: 'translate(-50%,-50%)',
+                        overflowY: 'auto'
                     }}>
 
                         <Edit projectSelected={projectSelected}></Edit>
                     </div>
                 </div>
-            } {
+            }
+
+            {/* {
                 openAdd &&
                 <div className='' onClick={() => setopenAdd(false)} style={{
 
@@ -163,13 +197,13 @@ export default function Dashboard({ groupcontents }) {
                         left: '50%',
                         top: '50%',
                         transform: 'translate(-50%,-50%)',
-                        overflowY: 'scroll'
+                        overflowY: 'auto'
                     }}>
 
                         <Create></Create>
                     </div>
                 </div>
-            }
+            } */}
         </AuthenticatedLayout>
     );
 }

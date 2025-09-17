@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import bg from '../../../img/bg.png'
+import TITLE from '../../../img/TITLE.png'
 import logo from '../../../img/anjo-logo.png'
 import mascott from '../../../img/anjo-mascott.png'
 import welcome from '../../../img/welcome-text.png'
@@ -8,153 +9,129 @@ import level from '../../../img/text-level.png'
 import elem from '../../../img/button-elem.png'
 import highschool from '../../../img/button-highschool.png'
 import { Scale } from '@mui/icons-material';
+import ShowTopics from './Component/ShowTopics';
 
 export default function Show({ groupcontent }) {
     const [project, setproject] = useState(groupcontent.projects);
+    const [currentproject, setcurrentproject] = useState(project[0]);
     const [selectLevel, setSelectLevel] = useState(-1);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [activeTab, setActiveTab] = useState(1);
+
+    useEffect(() => {
+        const getProj = project.find((prj) => prj.id === activeTab);
+        setcurrentproject(getProj)
+    }, [activeTab])
+    useEffect(() => {
+        console.log(project);
+    }, [project])
+    useEffect(() => {
+        console.log(currentproject);
+    }, [project])
     const getYoutubeEmbedUrl = (url) => {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     };
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 2000);
 
+        return () => clearTimeout(timer); // cleanup if component unmounts
+    }, []);
 
     return (
-        selectLevel == -1 ?
-            <div className='bg-white dark:bg-gray-900 min-h-screen w-full relative'
-                style={{
-                    backgroundImage: `url(${bg})`,
-                    backgroundBlendMode: 'screen',
-                    backgroundSize: 'cover',
-                    backgroundAttachment: 'fixed',
-                    backgroundRepeat: 'no-repeat',
-                    height: 'auto',
+        <div className='bg-white dark:bg-gray-900 min-h-screen w-full relative '
+            style={{
+                backgroundImage: 'url(' + bg + ')',
+                backgroundSize: 'cover',
+                backgroundAttachment: 'fixed',
+                backgroundRepeat: 'no-repeat',
+                height: 'auto',
+                backgroundPosition: window.innerWidth < 768 ? "right top" : "right top",
 
-                }}>
-                <img src={logo} style={{
-                    position: 'absolute',
-                    top: 10, right: 10,
-                    width: '30%',
-                    maxWidth: '250px',
-                    height: 'auto',
-                    aspectRatio: '1/1',
-                }}></img>
+            }}>
+            {isLoading ?
+                <>
+                    <img src={mascott}
 
-                <img src={mascott} style={{
-                    position: 'fixed',
-                    height: '100vh',
-                    bottom: -20, left: 0, zIndex: 1
-                }}></img>
-                <div style={{
-                    width: '50%',
-                    position: 'fixed',
-                    top: "40%", left: "50%",
-                    transform: 'translate(-50%,-50%)',
-                    zIndex: 1
-                }}>
-
-                    <img src={welcome} style={{
-                        width: '100%',
-                        ':hover': {
-                            Scale: 1.2
-                        }
-                    }}></img>
-                    <img src={level} className=' ' style={{
-                        width: '100%',
-                        marginTop: 100,
-                        ':hover': {
-                            Scale: 1.2
-                        }
-                    }}></img>
-                </div>
-
-                <div className="container mx-auto p-4 md:p-10 flex items-center justify-center min-h-[calc(100vh-2rem)]"
-                    style={{
-                        zIndex: 9,
+                        className="hidden md:block" // 👈 hide on mobile, show on md+
+                        style={{
+                            position: 'fixed',
+                            height: '70vh',
+                            bottom: -20, left: 0, zIndex: 1,
+                            top: "50%", left: "40%",
+                            transform: 'translate(-60%,-50%)',
+                        }}></img>
+                    <img src={TITLE} style={{
                         position: 'fixed',
-                        left: '50%',
-                        top: '70%',
-                        transform: 'translate(-50%,-40%)',
-                    }}>
+                        height: '20vh',
+                        bottom: -20, left: 0, zIndex: 1,
+                        top: "50%", left: "50%",
+                        transform: 'translate(-50%,-50%)',
+                    }}></img>
+                </> :
+                <>
 
-                    <div className="w-full max-w-xl flex flex-col md:flex-row gap-4 md:gap-8 justify-center">
-
-                        <img src={elem} onClick={() => setSelectLevel(0)} style={{
-                        }}></img>
-                        <img src={highschool} onClick={() => setSelectLevel(1)} style={{
-                        }}></img>
-                    </div>
-                </div>
-            </div>
-            : <div
-                className="mx-auto p-6 rounded shadow relative"
-                style={{
-                    backgroundImage: `url(${bg})`,
-                    backgroundBlendMode: 'screen',
-                    backgroundSize: 'cover',
-                    backgroundAttachment: 'fixed',
-                    backgroundRepeat: 'no-repeat',
-                    height: 'auto',
-                }}
-            >
-                <div className='max-w-4xl bg-white dark:bg-gray-900 min-h-screen p-6 rounded-lg' style={{
-                    position: 'relative',
-                    left: '50%',
-                    top: '100%',
-                    transform: 'translate(-50%,-0%)',
-
-                }}>
-                <span className='text-5xl font-bold mb-4 text-gray-900 dark:text-white mb-5'>{selectLevel == 0 ? 'Elementary' : 'Highschool'}</span>
-
-                    <Head title={project[selectLevel].title} />
-
-                    <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white mt-10">{project[selectLevel].title}</h1>
-                    <p className="mb-4 text-gray-700 dark:text-gray-300">{project[selectLevel].description}</p>
-
-
-                    {project[selectLevel].image_path && (
-                        <div className="mb-4">
-                            <img
-                                src={`/storage/${project[selectLevel].image_path}`}
-                                alt="Project"
-                                className="rounded-lg shadow"
-                            />
+                    <div
+                        className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center p-6 "
+                    >
+                        {/* Navbar */}
+                        <div className="flex space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-md">
+                            {project.map((proj) => (
+                                <button
+                                    key={proj.id}
+                                    onClick={() => setActiveTab(proj.id)}
+                                    className={`px-4 py-2 rounded-full text-sm font-semibold transition ${activeTab === proj.id
+                                        ? ` text-white`
+                                        : "text-gray-800 hover:bg-gray-200"
+                                        }`}
+                                    style={{
+                                        backgroundColor: proj.color
+                                    }}
+                                >
+                                    {proj.tab_title}
+                                </button>
+                            ))}
                         </div>
-                    )}
 
-                    {project[selectLevel].video && (
-                        <div className="mb-4">
-                            <iframe className='w-full' width="1296" height="500" src={getYoutubeEmbedUrl(project[selectLevel].video)} frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                        </div>
-                    )}
-                    <div className="space-y-6">
-                        {Array.isArray(project[selectLevel].questions) && project[selectLevel].questions.map((q, index) => (
-                            <div key={q.id} className="p-4 border dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
-                                <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
-                                    Q{index + 1}: {q.question}
-                                </h3>
-                                <ul className="mt-2 space-y-1">
-                                    {Array.isArray(q.answers) && q.answers.map((a, i) => (
-                                        <li
-                                            key={i}
-                                            className={`p-2 rounded ${a.is_correct
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                                                }`}
-                                        >
-                                            {a.text}
-                                        </li>
-                                    ))}
-                                </ul>
+                        {/* Ride Card */}
+                        <div className={`bg-white px-6 rounded-lg ${currentproject.image_path && 'mt-40'} mb-5 pb-6`}>
+
+                            {currentproject.image_path &&
+                                <img
+                                    src={`/storage/${currentproject.image_path}`}
+                                    alt="roller coaster"
+                                    className="w-full h-48 object-cover -mt-40 rounded-lg "
+                                />
+                            }
+                            <div className="rounded-lg shadow-xl  w-full overflow-hidden mt-6 "
+                                style={{ backgroundColor: currentproject.color }}
+                            >
+
+                                {/* Title */}
+                                <div className="text-center py-4 ">
+                                    <h2 className="text-white font-extrabold text-lg uppercase">
+                                        {currentproject.title}
+                                    </h2>
+                                    <p className="text-white text-sm tracking-wide">
+                                        {currentproject.description}
+                                    </p>
+                                </div>
+
+                                {/* Content */}
+                                {Array.isArray(currentproject.topics) && currentproject.topics.map((topic) =>
+                                    <ShowTopics topic={topic}></ShowTopics>
+                                )}
+
                             </div>
-                        ))}
+                        </div>
                     </div>
+                </>
 
-                    <div className="mt-6">
-                        <Link href={route('dashboard')} className="text-indigo-600 hover:underline">
-                            ← Back to Projects
-                        </Link>
-                    </div>
-                </div>
-            </div>
-    );
+            }
+
+        </div>
+    )
 }

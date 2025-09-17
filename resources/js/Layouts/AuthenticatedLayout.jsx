@@ -6,6 +6,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useContext, useState } from 'react';
 import { MoonIcon, SunIcon } from '@heroicons/react/24/solid';
 import { ThemeContext } from '@/Components/ThemeContext';
+import { Toaster } from 'react-hot-toast';
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
@@ -29,6 +30,19 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
+
+                                <button
+                                    onClick={toggleTheme}
+                                    className="p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    aria-label="Toggle Theme"
+                                >
+                                    {theme === 'light' ? (
+                                        <MoonIcon className="h-6 w-6 text-gray-800" />
+                                    ) : (
+                                        <SunIcon className="h-6 w-6 text-yellow-400" />
+                                    )
+                                    }
+                                </button>
                             </div>
                         </div>
 
@@ -128,6 +142,19 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                            aria-label="Toggle Theme"
+                        >
+                            {theme === 'light' ? (
+                                <MoonIcon className="h-6 w-6 text-gray-800" />
+                            ) : (
+                                <SunIcon className="h-6 w-6 text-yellow-400" />
+                            )
+                            }
+                        </button>
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-gray-600 pb-1 pt-4">
@@ -161,6 +188,7 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main>{children}</main>
+            <Toaster position="top-right" reverseOrder={false} />
         </div>
     );
 }
