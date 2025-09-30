@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import NewForm from "./Form/NewForm";
 import toast from "react-hot-toast";
 
-export default function Edit({ projectSelected }) {
+const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
+
+    const initialDataRef = useRef({ tabs: [], title: "" });
     const [tabs, setTabs] = useState([
         {
             id: null,
@@ -19,6 +21,10 @@ export default function Edit({ projectSelected }) {
     const [removedTabID, setRemovedTabID] = useState([]);
     const [activeTab, setActiveTab] = useState(0);
     const [contentTitle, setContentTitle] = useState("");
+
+    useImperativeHandle(ref, () => ({
+        handleClose
+    }));
 
     const [removedTopics, setRemovedTopics] = useState([]);
     // Add new tab
@@ -40,11 +46,30 @@ export default function Edit({ projectSelected }) {
     };
 
     useEffect(() => {
-        fetchData(projectSelected);
+        if (projectSelected)
+            fetchData(projectSelected);
     }, [projectSelected])
     useEffect(() => {
         console.log(tabs);
     }, [tabs])
+    const hasUnsavedChanges = () => {
+        return (
+            JSON.stringify(tabs) !== initialDataRef.current.tabs ||
+            contentTitle !== initialDataRef.current.title
+        );
+    };
+    
+    const handleClose = () => {
+        if (hasUnsavedChanges()) {
+            if (window.confirm("You have unsaved changes. Save before closing?")) {
+                handleSaveAll();
+            } else {
+                onCloseConfirmed(); // discard changes
+            }
+        } else {
+            onCloseConfirmed(); // no changes → just close
+        }
+    };
     const fetchData = async (id) => {
         try {
             const res = await axios.get(`/projects/${id}`, {
@@ -52,6 +77,10 @@ export default function Edit({ projectSelected }) {
             });
             if (res.data.projects.length != 0)
                 setTabs(res.data.projects);
+            initialDataRef.current = {
+                tabs: JSON.stringify(res.data.projects),
+                title: res.data.title,
+            };
             setContentTitle(res.data.title);
         } catch (err) {
             console.error("Error:", err.response?.data || err);
@@ -99,7 +128,7 @@ export default function Edit({ projectSelected }) {
         setTabs(updatedTabs);
     };
     const handleSaveAll = async (e) => {
-        e.preventDefault();
+        // e.preventDefault();
         try {
             // Send each tab
             for (const tab of tabs) {
@@ -129,7 +158,13 @@ export default function Edit({ projectSelected }) {
                 });
             }
 
+            initialDataRef.current = {
+                tabs: JSON.stringify(tabs),
+                title: contentTitle,
+            };
             toast.success("✅ All tabs saved successfully!");
+            
+            onCloseConfirmed();
         } catch (err) {
             console.error(err.response?.data || err);
             toast.error("❌ Failed to save some tabs!");
@@ -234,4 +269,6 @@ export default function Edit({ projectSelected }) {
             ))}
         </div>
     );
-}
+});
+
+export default Edit;

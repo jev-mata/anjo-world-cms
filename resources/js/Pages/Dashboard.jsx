@@ -7,6 +7,7 @@ import Create from './CMS/create';
 import QRCode from 'react-qrcode-logo';
 import AnjoLogo from '../../img/anjo-logo.png'
 import Modal from '@/Components/Modal';
+import ProjectItem from './CMS/Component/ProjectItem';
 
 export default function Dashboard({ groupcontents }) {
 
@@ -15,6 +16,7 @@ export default function Dashboard({ groupcontents }) {
     const [projectSelected, setProjectSelected] = useState(null);
     const [openAdd, setopenAdd] = useState(false);
 
+    const editRef = useRef();
     useEffect(() => {
         // console.log(projectSelected);
     }, [projectSelected])
@@ -152,13 +154,16 @@ export default function Dashboard({ groupcontents }) {
                                 <button className="p-2 text-gray-100 bg-green-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
                                     onClick={() => setProjectSelected(groupcontent.id)}
                                 >Edit</button>
-                                <button onClick={(e) => handleDelete(e, groupcontent.id)} className="p-2 mx-1 text-gray-100 bg-red-700 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700">Delete</button>
-                                <Link
+                                <ProjectItem groupcontent={groupcontent} handleDelete={handleDelete}></ProjectItem>
+                                <a
+
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     href={route('projects.show', groupcontent.id)}
                                     className="p-2 mx-1 bg-blue-800 text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
                                 >
                                     View
-                                </Link>
+                                </a>
                             </div>
                             <div className="p-2 text-gray-900 dark:text-gray-100   flex-1"  >
                                 <span className='flex   my-auto mx-auto' onClick={() => setQrSelected(route('projects.show', groupcontent.id))}>
@@ -252,12 +257,23 @@ export default function Dashboard({ groupcontents }) {
                         }} />;
                 </div>
             </div>
-            <Modal show={projectSelected} onClose={() => setProjectSelected(null)}>
+            <Modal show={projectSelected}
+                onClose={() => {
+                    // 👈 intercept backdrop click
+                    if (editRef.current) {
+                        editRef.current.handleClose(); // call Edit’s close logic
+                    }
+                }}>
                 <div
                     className="relative bg-white h-[80vh] rounded-lg shadow-lg overflow-hidden"
                 >
                     <div className="h-full overflow-y-auto ">
-                        <Edit projectSelected={projectSelected} />
+                        <Edit
+
+                            ref={editRef} // 👈 expose handleClose via forwardRef
+                            projectSelected={projectSelected} 
+                            onCloseConfirmed={() => setProjectSelected(null)}
+                            />
                     </div>
                 </div>
 
