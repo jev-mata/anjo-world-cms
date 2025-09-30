@@ -4,12 +4,7 @@ import bg from '../../../img/bg.png'
 import TITLE from '../../../img/TITLE.png'
 import logo from '../../../img/anjo-logo.png'
 import mascott from '../../../img/anjo-mascott.png'
-import welcome from '../../../img/welcome-text.png'
-import level from '../../../img/text-level.png'
-import elem from '../../../img/button-elem.png'
-import highschool from '../../../img/button-highschool.png'
-import { Scale } from '@mui/icons-material';
-import ShowTopics from './Component/ShowTopics'; 
+import ShowTopics from './Component/ShowTopics';
 export default function Show({ groupcontent }) {
     const [project, setproject] = useState(groupcontent.projects);
     const [currentproject, setcurrentproject] = useState(project[0]);
@@ -27,19 +22,15 @@ export default function Show({ groupcontent }) {
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     };
     const link = useRef(document.querySelector("link[rel*='icon']"));
+
+    useEffect(() => {
+        const current = link.current;
+        if (current) {
+            current.href = logo;
+        }
+    }, [logo]);
     useEffect(() => {
 
-        document.title = `${currentproject?.title} - Anjo World Exhibit`;  
-    }, [currentproject]);
-    
-  useEffect(() => {
-    const current = link.current;
-    if (current) {
-      current.href = logo;
-    }
-  }, [logo]);
-    useEffect(() => {
- 
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2000);
@@ -60,6 +51,7 @@ export default function Show({ groupcontent }) {
             }}>
             {isLoading ?
                 <>
+                    <Head title='Loading'></Head>
                     <img src={mascott}
 
                         className="hidden md:block" // 👈 hide on mobile, show on md+
@@ -80,6 +72,7 @@ export default function Show({ groupcontent }) {
                 </> :
                 <>
 
+                    <Head title={currentproject?.title}></Head>
                     <div
                         className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center p-6 "
                     >

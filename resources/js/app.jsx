@@ -7,8 +7,6 @@ import "@fontsource/inter/400.css"; // Inter with variable weights
 import "@fontsource/inter/500.css"; // Inter with variable weights
 import "@fontsource/inter/600.css"; // Inter with variable weights
 import "@fontsource/inter/700.css"; // Inter with variable weights 
-import "@fontsource/inter/800.css"; // Inter with variable weights
-import "@fontsource/inter/900.css"; // Inter with variable weights  
 import "@fontsource/inter"; // Inter with variable weights
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
