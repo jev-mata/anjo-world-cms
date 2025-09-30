@@ -22,16 +22,7 @@ export default function Show({ groupcontent }) {
     useEffect(() => {
         const getProj = project.find((prj) => prj.id === activeTab);
         setcurrentproject(getProj)
-    }, [activeTab])
-    useEffect(() => {
-        console.log(groupcontent);
-    }, [groupcontent])
-    useEffect(() => {
-        console.log(project);
-    }, [project])
-    useEffect(() => {
-        console.log(currentproject);
-    }, [project])
+    }, [activeTab]) 
     const getYoutubeEmbedUrl = (url) => {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
