@@ -1,15 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
-import bg from '../../../img/bg.png'
-import TITLE from '../../../img/TITLE.png'
-import logo from '../../../img/anjo-logo.png'
-import mascott from '../../../img/anjo-mascott.png'
-import welcome from '../../../img/welcome-text.png'
-import level from '../../../img/text-level.png'
-import elem from '../../../img/button-elem.png'
-import highschool from '../../../img/button-highschool.png'
-import { Scale } from '@mui/icons-material';
-
+import React, { useEffect, useState } from 'react'; 
+import bg from '../../img/bg.png'
+import TITLE from '../../img/TITLE.png' 
+import mascott from '../../img/anjo-mascott.png' 
 export default function NotFound404() { 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -38,14 +30,14 @@ export default function NotFound404() {
                         style={{
                             position: 'fixed',
                             height: '70vh',
-                            bottom: -20, left: 0, zIndex: 1,
+                            bottom: -20,  zIndex: 1,
                             top: "50%", left: "40%",
                             transform: 'translate(-60%,-50%)',
                         }}></img>
                     <img src={TITLE} style={{
                         position: 'fixed',
                         height: '20vh',
-                        bottom: -20, left: 0, zIndex: 1,
+                        bottom: -20, zIndex: 1,
                         top: "50%", left: "50%",
                         transform: 'translate(-50%,-50%)',
                     }}></img>

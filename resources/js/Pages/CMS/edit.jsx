@@ -141,14 +141,18 @@ export default function Edit({ projectSelected }) {
         >
             <div className=" sticky -top-1 dark:bg-gray-900 bg-gray-100 px-6 z-10">
 
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 p-5">
-                    {contentTitle}
-                </h2>
                 {/* Tabs Header */}
                 <div
                     className=" w-full flex flex-col items-center  "
                 >
-                    <div className="flex space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-md">
+                    <div>
+                        <label className="text-gray-900 dark:text-gray-300 mt-4 block text-left">Main Title</label>
+                        <input
+                            type="text"
+                            className="text-2xl font-semibold text-gray-800 dark:text-gray-800 p-2 mb-4 block mx-auto text-center"
+                            value={contentTitle} onChange={(e) => setContentTitle(e.target.value)}></input>
+                    </div>
+                    <div className="flex space-x-2 bg-white dark:bg-gray-700 rounded-full px-4 py-2 mb-6 shadow-md">
                         {tabs.map((tab, index) => (
                             <div
                                 key={tab.id}
@@ -156,8 +160,8 @@ export default function Edit({ projectSelected }) {
                                 style={{
                                     backgroundColor: tab.color
                                 }}
-                                className={`px-4 py-2 rounded-full cursor-pointer border ${activeTab === index
-                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                className={`px-4 py-2 rounded-full cursor-pointer border  ${activeTab === index
+                                    ? "bg-indigo-600 text-white border-white border-2 font-bold"
                                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                                     }`}
                             >{tab.tab_title || `Tab ${index + 1}`}

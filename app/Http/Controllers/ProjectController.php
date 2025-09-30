@@ -22,6 +22,9 @@ class ProjectController extends Controller
     public function show($id)
     {
         $project = GroupContents::with('projects.topics')->findOrFail($id); // eager load relations
+        if (!$project) {
+            return Inertia::render('Dashboard');
+        }
 
         return Inertia::render('CMS/Show', [
             'groupcontent' => $project,

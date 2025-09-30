@@ -1,9 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import Edit from './CMS/edit';
 import Create from './CMS/create';
+import QRCode from 'react-qrcode-logo';
+import AnjoLogo from '../../img/anjo-logo.png'
+import Modal from '@/Components/Modal';
 
 export default function Dashboard({ groupcontents }) {
 
@@ -47,6 +50,48 @@ export default function Dashboard({ groupcontents }) {
             console.error(err.response?.data || err);
         }
     };
+    const qrRef = useRef(null);
+    const [loading, setLoading] = useState(false);
+    const handleDownload = (val) => {
+        setQrSelected(val);
+        setLoading(true);
+        if (!qrRef.current?.canvasRef?.current) return;
+
+        const delay = () => {
+
+            const canvas = qrRef.current.canvasRef.current;
+            console.log(canvas);
+            try {
+                const borderSize = 50; // thickness in px
+                const newCanvas = document.createElement("canvas");
+                newCanvas.width = canvas.width + borderSize * 2;
+                newCanvas.height = canvas.height + borderSize * 2;
+
+                const ctx = newCanvas.getContext("2d");
+
+                // Fill with white border
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+                // Draw original QR in center
+                ctx.drawImage(canvas, borderSize, borderSize);
+
+                const link = document.createElement("a");
+                link.href = newCanvas.toDataURL("image/png");
+                link.download = "qr-code.png";
+                link.click();
+
+                setLoading(false);
+                setQrSelected(null);
+            } catch (err) {
+                console.error("⚠️ Failed to export QR code:", err);
+                alert("Could not download QR. Ensure logo image supports CORS or use a local asset.");
+            }
+        }
+        const resT = setTimeout(() => delay(), 1000);
+
+        return () => clearTimeout(resT);
+    };
 
     return (
         <AuthenticatedLayout
@@ -70,37 +115,40 @@ export default function Dashboard({ groupcontents }) {
                         <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex">
                             <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
 
-                                <input type='text' placeholder='Topic Title' className='w-full' value={newTitle} onChange={(e) => setNewTitle(e.target.value)}></input>
+                                <input type='text' placeholder='Topic Title' className='w-full dark:text-gray-800' value={newTitle} onChange={(e) => setNewTitle(e.target.value)}></input>
                             </div>
                             <div className="p-6 text-gray-900 dark:text-gray-100" style={{ alignContent: 'center' }} >
-                                <button onClick={handleSubmit} className='bg-gray-300 px-5 py-3 rounded-lg dark:text-white text-gray-800'>Add</button>
+                                <button onClick={handleSubmit} className='bg-gray-300 dark:bg-gray-700 px-5 py-3 rounded-lg dark:text-white text-gray-800'>Add</button>
                             </div>
                         </div>
                     }
-                    <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 flex">
-                        <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
+                    <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 grid grid-cols-4">
+                        <div className="p-6 text-gray-900 dark:text-gray-100 ">
                             Title
                         </div>
                         {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
                             Description
                         </div> */}
-                        <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
+                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center ">
                             Actions
                         </div>
-                        <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
+                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center  ">
                             QR
+                        </div>
+                        <div className="py-6 pl-6 text-gray-900 dark:text-gray-100 text-right pr-5 ">
+                            Action
                         </div>
 
                     </div>
                     {Array.isArray(groupcontents) && groupcontents.map((groupcontent, index) => (
-                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex" key={index}>
-                            <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
+                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 grid grid-cols-4" key={index}>
+                            <div className="p-6 text-gray-900  my-auto dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
                                 {groupcontent.title}
                             </div>
                             {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
                                 {project[0].description}
                             </div> */}
-                            <div className="p-4 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
+                            <div className="p-4  my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 " style={{ alignContent: 'center' }}>
                                 <button className="p-2 text-gray-100 bg-green-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
                                     onClick={() => setProjectSelected(groupcontent.id)}
                                 >Edit</button>
@@ -112,47 +160,39 @@ export default function Dashboard({ groupcontents }) {
                                     View
                                 </Link>
                             </div>
-                            <div className="p-6 text-gray-900 dark:text-gray-100 flex-1"  >
-                                <QRCodeSVG value={route('projects.show', groupcontent.id)} size={98} onClick={() => setQrSelected(route('projects.show', groupcontent.id))} style={{
-                                    borderColor: 'white',
-                                    borderWidth: 5,
-                                    borderStyle: 'solid'
-                                }} />
+                            <div className="p-2 text-gray-900 dark:text-gray-100   flex-1"  >
+                                <span className='flex   my-auto mx-auto' onClick={() => setQrSelected(route('projects.show', groupcontent.id))}>
 
+                                    <QRCode ecLevel="H"
+                                        logoImage={AnjoLogo}
+                                        logoHeight={580}
+                                        eyeRadius={[100, 100, 100]}
+                                        logoWidth={580}
+                                        qrStyle="dots"
+                                        size={1700}
+                                        value={route('projects.show', groupcontent.id)}
+                                        style={{
+                                            width: 70, height: 70,
+                                            marginLeft: 'auto',
+                                            marginRight: 'auto',
+                                            borderColor: 'white',
+                                            borderWidth: 5,
+                                            borderStyle: 'solid',
+                                            borderRadius: 7
+                                        }} />
+                                </span>
+                            </div>
+                            <div className='flex  mr-5'>
+
+                                <button onClick={() => handleDownload(route('projects.show', groupcontent.id))} className='dark:bg-gray-600 bg-gray-200 p-5 rounded-lg my-auto ml-auto'>
+                                    Download QR
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
-                {qrSelected &&
-                    <div style={{
-                        position: 'fixed',
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%,-50%)',
-                        width: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        height: '100vh'
-                    }} onClick={() => setQrSelected(null)}>
-
-                        <QRCodeSVG value={qrSelected} style={{
-                            borderColor: 'white',
-                            borderWidth: 5,
-                            borderStyle: 'solid',
-                            position: 'fixed',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%,-50%)',
-                            width: 'calc((50vh + 50vw)/2)',
-                            height: 'auto',
-                            aspectRatio: '1/1'
-                        }} />
-                    </div>
-                }
-            </div>
-            {
-                projectSelected != null &&
-                <div className='' onClick={() => setProjectSelected(null)} style={{
-
+                <div style={{
+                    display: qrSelected ? 'block' : 'none',
                     position: 'fixed',
                     left: '50%',
                     top: '50%',
@@ -160,22 +200,70 @@ export default function Dashboard({ groupcontents }) {
                     width: '100%',
                     backgroundColor: 'rgba(0,0,0,0.8)',
                     height: '100vh'
-                }}>
-                    <div style={{
+                }} onClick={() => !loading && setQrSelected(null)}>
 
-                        width: '60%',
-                        position: 'fixed',
-                        left: '50%',
-                        top: '50%',
-                        height: '80vh',
-                        transform: 'translate(-50%,-50%)',
-                        overflowY: 'auto'
-                    }}>
+                    {/* <QRCodeSVG value={qrSelected}
 
-                        <Edit projectSelected={projectSelected}></Edit>
+                            size={300} // pixel size
+                            bgColor="#ffffff"
+                            fgColor="#000000"
+                            imageSettings={{
+                                src: "/logo.png",     // path to your logo image
+                                x: undefined,         // auto center
+                                y: undefined,         // auto center
+                                height: 80,           // size of logo
+                                width: 80,
+                                excavate: true        // makes a white "hole" behind the logo
+                            }}
+                            level="H" // high error correction so QR still works with logo
+                            style={{
+                                borderColor: 'white',
+                                borderWidth: 5,
+                                borderStyle: 'solid',
+                                position: 'fixed',
+                                left: '50%',
+                                top: '50%',
+                                transform: 'translate(-50%,-50%)',
+                                width: 'calc((50vh + 50vw)/2)',
+                                height: 'auto',
+                                aspectRatio: '1/1'
+                            }} /> */}
+                    <QRCode value={qrSelected || ""}
+                        ref={qrRef}
+                        ecLevel="H" size={1700}
+                        logoImage={"anjo-logo.png"}
+                        logoHeight={580}
+                        logoWidth={580}
+                        qrStyle="dots"
+                        eyeRadius={[100, 100, 100]}
+                        logoImageOptions={{ crossOrigin: "anonymous" }}
+                        style={{
+                            borderColor: 'white',
+                            borderWidth: 25,
+                            borderStyle: 'solid',
+                            position: 'fixed',
+                            borderRadius: "20px",  // optional: rounded border
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%,-50%)',
+                            width: 'calc((50vh + 50vw)/2)',
+                            height: 'auto',
+                            aspectRatio: '1/1'
+                        }} />;
+                </div>
+            </div>
+            <Modal show={projectSelected} onClose={() => setProjectSelected(null)}>
+                <div
+                    className="relative bg-white h-[80vh] rounded-lg shadow-lg overflow-hidden"
+                >
+                    <div className="h-full overflow-y-auto ">
+                        <Edit projectSelected={projectSelected} />
                     </div>
                 </div>
-            }
+
+            </Modal>
+
+
 
             {/* {
                 openAdd &&

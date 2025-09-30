@@ -17,12 +17,15 @@ export default function Show({ groupcontent }) {
     const [selectLevel, setSelectLevel] = useState(-1);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [activeTab, setActiveTab] = useState(1);
+    const [activeTab, setActiveTab] = useState(project.length != 0 ? project[0].id : 0);
 
     useEffect(() => {
         const getProj = project.find((prj) => prj.id === activeTab);
         setcurrentproject(getProj)
     }, [activeTab])
+    useEffect(() => {
+        console.log(groupcontent);
+    }, [groupcontent])
     useEffect(() => {
         console.log(project);
     }, [project])
@@ -60,14 +63,14 @@ export default function Show({ groupcontent }) {
                         style={{
                             position: 'fixed',
                             height: '70vh',
-                            bottom: -20, left: 0, zIndex: 1,
+                            bottom: -20, zIndex: 1,
                             top: "50%", left: "40%",
                             transform: 'translate(-60%,-50%)',
                         }}></img>
                     <img src={TITLE} style={{
                         position: 'fixed',
                         height: '20vh',
-                        bottom: -20, left: 0, zIndex: 1,
+                        bottom: -20, zIndex: 1,
                         top: "50%", left: "50%",
                         transform: 'translate(-50%,-50%)',
                     }}></img>
@@ -97,9 +100,9 @@ export default function Show({ groupcontent }) {
                         </div>
 
                         {/* Ride Card */}
-                        <div className={`bg-white px-6 rounded-lg ${currentproject.image_path && 'mt-40'} mb-5 pb-6`}>
+                        <div className={`bg-white px-6 rounded-lg ${currentproject?.image_path && 'mt-40'} mb-5 pb-6`}>
 
-                            {currentproject.image_path &&
+                            {currentproject?.image_path &&
                                 <img
                                     src={`/storage/${currentproject.image_path}`}
                                     alt="roller coaster"
@@ -107,21 +110,21 @@ export default function Show({ groupcontent }) {
                                 />
                             }
                             <div className="rounded-lg shadow-xl  w-full overflow-hidden mt-6 "
-                                style={{ backgroundColor: currentproject.color }}
+                                style={{ backgroundColor: currentproject?.color }}
                             >
 
                                 {/* Title */}
                                 <div className="text-center py-4 ">
                                     <h2 className="text-white font-extrabold text-lg uppercase">
-                                        {currentproject.title}
+                                        {currentproject?.title}
                                     </h2>
                                     <p className="text-white text-sm tracking-wide">
-                                        {currentproject.description}
+                                        {currentproject?.description}
                                     </p>
                                 </div>
 
                                 {/* Content */}
-                                {Array.isArray(currentproject.topics) && currentproject.topics.map((topic) =>
+                                {Array.isArray(currentproject?.topics) && currentproject.topics.map((topic) =>
                                     <ShowTopics topic={topic}></ShowTopics>
                                 )}
 
