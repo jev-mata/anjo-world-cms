@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import bg from '../../../img/bg.png'
 import TITLE from '../../../img/TITLE.png'
@@ -9,8 +9,7 @@ import level from '../../../img/text-level.png'
 import elem from '../../../img/button-elem.png'
 import highschool from '../../../img/button-highschool.png'
 import { Scale } from '@mui/icons-material';
-import ShowTopics from './Component/ShowTopics';
-
+import ShowTopics from './Component/ShowTopics'; 
 export default function Show({ groupcontent }) {
     const [project, setproject] = useState(groupcontent.projects);
     const [currentproject, setcurrentproject] = useState(project[0]);
@@ -22,12 +21,25 @@ export default function Show({ groupcontent }) {
     useEffect(() => {
         const getProj = project.find((prj) => prj.id === activeTab);
         setcurrentproject(getProj)
-    }, [activeTab]) 
+    }, [activeTab])
     const getYoutubeEmbedUrl = (url) => {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     };
+    const link = useRef(document.querySelector("link[rel*='icon']"));
     useEffect(() => {
+
+        document.title = `${currentproject?.title} - Anjo World Exhibit`;  
+    }, [currentproject]);
+    
+  useEffect(() => {
+    const current = link.current;
+    if (current) {
+      current.href = logo;
+    }
+  }, [logo]);
+    useEffect(() => {
+ 
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2000);
