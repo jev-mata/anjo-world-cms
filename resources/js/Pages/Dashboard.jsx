@@ -1,7 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { useEffect, useRef, useState } from 'react'; 
 import Edit from './CMS/edit';
 import Create from './CMS/create';
 import QRCode from 'react-qrcode-logo';
@@ -111,7 +110,7 @@ export default function Dashboard({ groupcontents }) {
             <Head title="Dashboard" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-[90%] sm:px-6 lg:px-8">
 
                     {openAdd &&
                         <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex">
@@ -124,15 +123,18 @@ export default function Dashboard({ groupcontents }) {
                             </div>
                         </div>
                     }
-                    <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 grid grid-cols-4">
+                    <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 grid grid-cols-9">
                         <div className="p-6 text-gray-900 dark:text-gray-100 ">
                             Title
                         </div>
                         {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
                             Description
                         </div> */}
-                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center ">
+                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center col-span-3">
                             Actions
+                        </div>
+                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center  col-span-3">
+                            Analytics
                         </div>
                         <div className="p-6 text-gray-900 dark:text-gray-100  text-center  ">
                             QR
@@ -143,14 +145,14 @@ export default function Dashboard({ groupcontents }) {
 
                     </div>
                     {Array.isArray(groupcontents) && groupcontents.map((groupcontent, index) => (
-                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 grid grid-cols-4" key={index}>
+                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 grid grid-cols-9" key={index}>
                             <div className="p-6 text-gray-900  my-auto dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
                                 {groupcontent.title}
                             </div>
                             {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
                                 {project[0].description}
                             </div> */}
-                            <div className="p-4  my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 " style={{ alignContent: 'center' }}>
+                            <div className="p-4  col-span-3 my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 grid-cols-3 grid" style={{ alignContent: 'center' }}>
                                 <button className="p-2 text-gray-100 bg-green-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
                                     onClick={() => setProjectSelected(groupcontent.id)}
                                 >Edit</button>
@@ -163,6 +165,29 @@ export default function Dashboard({ groupcontents }) {
                                     className="p-2 mx-1 bg-blue-800 text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
                                 >
                                     View
+                                </a>
+                            </div>
+
+                            <div className="p-4 col-span-3 grid grid-cols-3 my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 " style={{ alignContent: 'center' }}>
+                                <div className='grid '>
+                                    <strong>Views Today: {groupcontent.analytics_today}</strong>
+
+                                    <strong>Total Views: {groupcontent.analytics_total}</strong>
+                                </div>
+                                {groupcontent.tab_stats?.length > 0 && (
+                                    <div className="mt-2 grid">
+                                        <strong>Tabs Accessed:</strong>
+                                        <ul className="list-disc list-inside text-sm">
+                                            <li >{groupcontent.tab_stats[0].tab_name}: {groupcontent.tab_stats[0].total}</li>
+                                            <li>...</li>
+                                        </ul>
+                                    </div>
+                                )}
+                                <a
+                                    href={route('analytics.show', groupcontent.id)}
+                                    className="p-2 text-center my-auto mx-1 bg-purple-600 text-white rounded-md hover:bg-purple-800"
+                                >
+                                   Detailed Analytics
                                 </a>
                             </div>
                             <div className="p-2 text-gray-900 dark:text-gray-100   flex-1"  >
@@ -271,9 +296,9 @@ export default function Dashboard({ groupcontents }) {
                         <Edit
 
                             ref={editRef} // 👈 expose handleClose via forwardRef
-                            projectSelected={projectSelected} 
+                            projectSelected={projectSelected}
                             onCloseConfirmed={() => setProjectSelected(null)}
-                            />
+                        />
                     </div>
                 </div>
 

@@ -3,18 +3,28 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { MoonIcon, SunIcon } from '@heroicons/react/24/solid';
 import { ThemeContext } from '@/Components/ThemeContext';
 import { Toaster } from 'react-hot-toast';
+import logo from '../../img/anjo-logo.png'
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const { theme, toggleTheme } = useContext(ThemeContext);
+
+    const link = useRef(document.querySelector("link[rel*='icon']"));
+
+    useEffect(() => {
+        const current = link.current;
+        if (current) {
+            current.href = logo;
+        }
+    }, [logo]);
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <nav className="border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-[90%] px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
@@ -181,7 +191,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {header && (
                 <header className="bg-white dark:bg-gray-800 shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <div className="mx-auto max-w-[90%] px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>
                 </header>

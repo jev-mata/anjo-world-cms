@@ -30,6 +30,10 @@ class Topics extends Model
         return $this->belongsTo(Topics::class, 'parent_id');
     }
 
+    public function questions()
+    {
+        return $this->hasMany(Question::class,'topic_id','id')->with('answers');
+    }
     public function topics()
     {
 

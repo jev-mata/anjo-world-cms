@@ -19,11 +19,14 @@ export default function NewForm({
     tabTitle,
     setTabTitle,
     handleSaveAll,
-    setRemovedTopics,
-    removedTopics
+    setRemovedTopics, 
+    removedTopics,
+    setRemovedQuestions,
+    setRemovedAnswers,
 }) {
 
     const [preview, setPreview] = useState(null);
+    
     // Add new empty topic
     const addTopic = () => {
         setTopics([
@@ -33,12 +36,14 @@ export default function NewForm({
                 title: "",
                 description: "",
                 color: "#000000",
-                topics: []
+                topics: [], 
+                questions: [], // Questions are within topics
             },
         ]);
     };
-    const colors = ["#A3CB3C", "#57C5CF", "#F6940D", "#EC008D", "#962495"];
 
+    const colors = ["#A3CB3C", "#57C5CF", "#F6940D", "#EC008D", "#962495"]; 
+    
     // Remove topic by index
     const removeTopic = (path) => {
         const updated = [...topics];
@@ -49,8 +54,22 @@ export default function NewForm({
                 const removed = arr[p[0]];
                 if (removed !== undefined) {
                     if (removed?.id) {
-                        // ✅ Track removed topic IDs
                         setRemovedTopics((prev) => [...prev, removed.id]);
+                    }
+                    // Also track removed questions and answers from this topic
+                    if (removed.questions) {
+                        removed.questions.forEach(question => {
+                            if (question.id) {
+                                setRemovedQuestions((prev) => [...prev, question.id]);
+                            }
+                            if (question.answers) {
+                                question.answers.forEach(answer => {
+                                    if (answer.id) {
+                                        setRemovedAnswers((prev) => [...prev, answer.id]);
+                                    }
+                                });
+                            }
+                        });
                     }
                     arr.splice(p[0], 1);
                 }
@@ -83,7 +102,8 @@ export default function NewForm({
             title: "",
             description: "",
             color: "#000000",
-            topics: []
+            topics: [],
+            questions: [] // Questions in subtopics too
         });
 
         setTopics(updated);
@@ -91,26 +111,24 @@ export default function NewForm({
 
     // Update topic field
     const handleTopicChange = (path, field, value) => {
-        const updated = [...topics]; // shallow copy root
+        const updated = [...topics];
         let current = updated;
 
         for (let i = 0; i < path.length - 1; i++) {
-            // ensure topics exists
             if (!current[path[i]].topics) {
                 current[path[i]].topics = [];
             }
             current = current[path[i]].topics;
         }
 
-        // ensure final item exists
         if (!current[path[path.length - 1]]) {
-            current[path[path.length - 1]] = { topics: [] };
+            current[path[path.length - 1]] = { topics: [], questions: [] };
         }
 
         current[path[path.length - 1]][field] = value;
-
         setTopics(updated);
     };
+
     useEffect(() => {
         if (!image) {
             setPreview(null);
@@ -119,12 +137,11 @@ export default function NewForm({
         const objectUrl = URL.createObjectURL(image);
         setPreview(objectUrl);
 
-        // cleanup to avoid memory leaks
         return () => URL.revokeObjectURL(objectUrl);
     }, [image]);
 
     return (
-        <form onSubmit={handleSaveAll} className="space-y-6 " >
+        <form onSubmit={handleSaveAll} className="space-y-6" >
             {/* Title */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -143,7 +160,6 @@ export default function NewForm({
                 <label className="block text-sm text-gray-700 dark:text-gray-300">
                     Color
                 </label>
-
                 <div className="flex space-x-3">
                     {colors.map((c) => (
                         <button
@@ -157,6 +173,7 @@ export default function NewForm({
                     ))}
                 </div>
             </div>
+
             {/* Tab Title */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -202,8 +219,8 @@ export default function NewForm({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Image
                 </label>
-                {preview ? <img src={preview} className="pt-4" /> : image_path &&
-                    <img src={`storage/${image_path}`} className="pt-4" />
+                {preview ? <img src={preview} className="pt-4" alt="Preview" /> : image_path &&
+                    <img src={`storage/${image_path}`} className="pt-4" alt="Current" />
                 }
                 <input
                     type="file"
@@ -221,16 +238,19 @@ export default function NewForm({
 
                 {Array.isArray(topics) &&
                     topics.map((topic, index) => (
-                        <Topic key={index}
+                        <Topic 
+                            key={index}
                             index={index}
                             addSubTopic={addSubTopic}
                             handleTopicChange={handleTopicChange}
                             path={[index]}
                             removeTopic={removeTopic}
                             topic={topic}
-                            colors={colors}></Topic>
-                    ))}
-
+                            colors={colors}
+                            setRemovedQuestions={setRemovedQuestions}
+                            setRemovedAnswers={setRemovedAnswers}
+                        />
+                    ))} 
                 <button
                     type="button"
                     onClick={addTopic}

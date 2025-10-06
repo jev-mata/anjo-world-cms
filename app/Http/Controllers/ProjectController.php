@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Answer;
 use App\Models\GroupContents;
 use App\Models\Project;
+use App\Models\Question;
+use App\Services\AnalyticsService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,9 +23,9 @@ class ProjectController extends Controller
     // Store a newly created project in the database
     public function show($id)
     {
-        $project = GroupContents::with('projects.topics')->findOrFail($id); // eager load relations
+        $project = GroupContents::with('projects.topics.questions.answers')->findOrFail($id); // eager load relations
 
-        Log::error($project);
+        AnalyticsService::recordPageView($id); 
 
         return Inertia::render('CMS/Show', [
             'groupcontent' => $project,
@@ -47,72 +49,96 @@ class ProjectController extends Controller
 
     public function edit_show($id)
     {
-        $project = GroupContents::with('projects.topics')->findOrFail($id); // eager load relations
+        $project = GroupContents::with(['projects.topics.questions.answers'])->findOrFail($id); // eager load relations
+        // Log::info($project->with(['projects.topics.questions.answers'])->first());
 
         return response()->json($project);
     }
-
     public function store(Request $request)
     {
-        // ✅ Validate input
-        $validated = $request->validate([
-            'group_contents_id' => 'required',
-            'title' => 'required|string|max:255',
-            'id' => 'required',
-            'description' => 'required|string',
-            'color' => 'required|string',
-            'video' => 'nullable|string',
-            'tab_title' => 'nullable|string|max:255',
-            'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'topics' => 'nullable|array',
+        \Log::info('Received request data:', $request->all());
+        
+        // Validate the main structure
+        $request->validate([
+            'tabs' => 'required|array',
+            'tabs.*.title' => 'required|string|max:255',
+            'tabs.*.group_contents_id' => 'required|exists:group_contents,id',
+            'tabs.*.image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
-
-        // ✅ Build update data
-        $data = [
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'color' => $validated['color'],
-            'tab_title' => $validated['tab_title'] ?? $validated['title'],
-            'group_contents_id' => $validated['group_contents_id'],
-            'video' => $validated['video'] ?? null,
-        ];
-        // ✅ Handle image upload
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('projects', 'public');
-            $data['image_path'] = $imagePath;
-        }
-        if ($request->filled('removed_topics')) {
-            $ids = json_decode($request->removed_topics, true);
-            if (is_array($ids)) {
-                \App\Models\Topics::whereIn('id', $ids)->delete();
+    
+        $responseData = [];
+    
+        // Process each tab
+        foreach ($request->tabs as $tabIndex => $tabData) {
+            \Log::info("Processing tab {$tabIndex}:", $tabData);
+            
+            // Validate individual tab data
+            $validatedTab = validator($tabData, [
+                'group_contents_id' => 'required',
+                'title' => 'required|string|max:255',
+                'id' => 'nullable', // Make id nullable for new records
+                'description' => 'required|string',
+                'color' => 'nullable|string',
+                'video' => 'nullable|string',
+                'tab_title' => 'nullable|string|max:255',
+                'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+                'topics' => 'nullable|array',
+                'removed_topics' => 'nullable|string',
+                'removed_questions' => 'nullable|string',
+                'removed_answers' => 'nullable|string',
+            ])->validate();
+    
+            // Build update data
+            $data = [
+                'title' => $validatedTab['title'],
+                'description' => $validatedTab['description'],
+                'color' => $validatedTab['color'],
+                'tab_title' => $validatedTab['tab_title'] ?? $validatedTab['title'],
+                'group_contents_id' => $validatedTab['group_contents_id'],
+                'video' => $validatedTab['video'] ?? null,
+            ];
+    
+            // Handle image upload
+            if ($request->hasFile("tabs.{$tabIndex}.image")) {
+                $imagePath = $request->file("tabs.{$tabIndex}.image")->store('projects', 'public');
+                $data['image_path'] = $imagePath;
             }
+    
+            // Handle removed items
+            if (!empty($validatedTab['removed_topics'])) {
+                $ids = json_decode($validatedTab['removed_topics'], true);
+                if (is_array($ids)) {
+                    \App\Models\Topics::whereIn('id', $ids)->delete();
+                }
+            }
+    
+            // Save project
+            $project = Project::updateOrCreate(
+                ['id' => $validatedTab['id'] ?? null],
+                $data
+            );
+    
+            \Log::info("Saved project: " . $project->id);
+    
+            // Save topics recursively
+            if (!empty($validatedTab['topics'])) {
+                $this->saveTopicsRecursive($validatedTab['topics'], null, $project->id);
+            }
+    
+            $responseData[] = $project->load('topics');
         }
-        // ✅ Save project
-
-        $project = Project::updateOrCreate(
-            ['id' => $validated['id'] ?? null],
-            $data
-        );
-
-        // ✅ Decode topics JSON
-        if (! empty($validated['topics'])) {
-            // Recursive save
-            // $project->topics()->delete();
-
-            $this->saveTopicsRecursive($validated['topics'], null, $project->id);
-        }
-
+    
         return response()->json([
-            'message' => 'Project created successfully!',
-            'data' => $project->load('topics'),
+            'message' => 'All tabs saved successfully!',
+            'data' => $responseData,
         ], 201);
     }
-
+    
     protected function saveTopicsRecursive(array $topics, $parentId, $projectId)
     {
-        foreach ($topics as $topicData) {
-            Log::info($topicData['id']);
+        foreach ($topics as $topicIndex => $topicData) {
+            \Log::info("Processing topic: " . ($topicData['title'] ?? 'Unknown'));
+            
             $data = [
                 'title' => $topicData['title'] ?? '',
                 'description' => $topicData['description'] ?? '',
@@ -121,27 +147,66 @@ class ProjectController extends Controller
                 'content_id' => $projectId,
                 'video' => $topicData['video'] ?? null,
             ];
-            // ✅ Handle topic image (expecting it as a base64 or existing string path)
-            if (isset($topicData['image_path']) && $topicData['image_path'] instanceof \Illuminate\Http\UploadedFile) {
-                $imagePath = $topicData['image_path']->store('projects/topics', 'public');
+    
+            // Handle topic image
+            if (isset($topicData['image']) && $topicData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $imagePath = $topicData['image']->store('projects/topics', 'public');
                 $data['image_path'] = $imagePath;
+            } elseif (isset($topicData['image_path'])) {
+                $data['image_path'] = $topicData['image_path'];
             }
-
-            // ✅ Save topic
-            $topic = \App\Models\Topics::findOrNew($topicData['id'] ?? null);
-            Log::info($topic);
-            $topic->fill(
+    
+            // Save topic
+            $topic = \App\Models\Topics::updateOrCreate(
+                ['id' => $topicData['id'] ?? null],
                 $data
             );
-            $topic->save();
-
-            // ✅ Recursive save of children
-            if (! empty($topicData['topics']) && is_array($topicData['topics'])) {
+    
+            \Log::info("Saved topic: " . $topic->id);
+    
+            // Save questions
+            if (!empty($topicData['questions'])) {
+                foreach ($topicData['questions'] as $qIndex => $qData) {
+                    $question = Question::updateOrCreate(
+                        ['id' => $qData['id'] ?? null],
+                        [
+                            'topic_id' => $topic->id, 
+                            'title' => $qData['title'] ?? 'Untitled Question'
+                        ]
+                    );
+    
+                    \Log::info("Saved question: " . $question->id);
+    
+                    // Save answers
+                    if (!empty($qData['answers'])) {
+                        $answerIds = [];
+                        foreach ($qData['answers'] as $aIndex => $aData) {
+                            $answer = Answer::updateOrCreate(
+                                ['id' => $aData['id'] ?? null],
+                                [
+                                    'question_id' => $question->id,
+                                    'text' => $aData['text'] ?? '',
+                                    'is_correct' => $aData['is_correct'] ?? false,
+                                ]
+                            );
+                            $answerIds[] = $answer->id;
+                            \Log::info("Saved answer: " . $answer->id);
+                        }
+    
+                        // Cleanup deleted answers
+                        Answer::where('question_id', $question->id)
+                              ->whereNotIn('id', $answerIds)
+                              ->delete();
+                    }
+                }
+            }
+    
+            // Recursive save of children
+            if (!empty($topicData['topics'])) {
                 $this->saveTopicsRecursive($topicData['topics'], $topic->id, $projectId);
             }
         }
     }
-
     public function edit_save(Request $request)
     {
         try {
@@ -175,7 +240,7 @@ class ProjectController extends Controller
 
                         foreach ($g['questions'] as $q) {
                             // Update or create question
-                            $question = $project->questions()->updateOrCreate(
+                            $question = $project->topics()->updateOrCreate(
                                 ['id' => $q['id'] ?? null],
                                 ['question' => $q['question']]
                             );
@@ -209,13 +274,13 @@ class ProjectController extends Controller
 
                         // Delete questions that were removed
                         if ($project->exists) {
-                            $project->questions()
+                            $project->topics()
                                 ->whereNotIn('id', $existingQuestionIds)
                                 ->delete();
                         }
                     } else {
                         // If no questions provided, delete all existing questions
-                        $project->questions()->delete();
+                        $project->topics()->delete();
                     }
                 }
             }

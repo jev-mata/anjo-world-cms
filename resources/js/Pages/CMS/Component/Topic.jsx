@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Question from "./Question";
 
 export default function Topic({
     topic,
@@ -6,14 +7,97 @@ export default function Topic({
     path = [],
     handleTopicChange,
     addSubTopic,
-    removeTopic,
+    removeTopic, 
     index,
+    setRemovedQuestions,
+    setRemovedAnswers,
 }) {
     const [preview, setPreview] = useState(null);
 
-    useEffect(() => {
-        console.log(topic);
-    }, [topic])
+    // Add question to this topic
+    const addQuestion = () => {
+        const currentQuestions = topic.questions || [];
+        const updatedQuestions = [
+            ...currentQuestions,
+            {
+                id: null,
+                title: "",
+                answers: [
+                    {
+                        id: null,
+                        text: "",
+                        is_correct: false
+                    }
+                ]
+            }
+        ];
+        handleTopicChange(path, "questions", updatedQuestions);
+    };
+
+    // Remove question from this topic
+    const removeQuestion = (questionIndex) => {
+        const currentQuestions = [...(topic.questions || [])];
+        const removedQuestion = currentQuestions[questionIndex];
+        
+        if (removedQuestion?.id) {
+            setRemovedQuestions((prev) => [...prev, removedQuestion.id]);
+        }
+        
+        // Also track removed answers
+        if (removedQuestion.answers) {
+            removedQuestion.answers.forEach(answer => {
+                if (answer.id) {
+                    setRemovedAnswers((prev) => [...prev, answer.id]);
+                }
+            });
+        }
+        
+        currentQuestions.splice(questionIndex, 1);
+        handleTopicChange(path, "questions", currentQuestions);
+    };
+
+    // Add answer to a question in this topic
+    const addAnswer = (questionIndex) => {
+        const currentQuestions = [...(topic.questions || [])];
+        if (!currentQuestions[questionIndex].answers) {
+            currentQuestions[questionIndex].answers = [];
+        }
+        currentQuestions[questionIndex].answers.push({
+            id: null,
+            text: "",
+            is_correct: false
+        });
+        handleTopicChange(path, "questions", currentQuestions);
+    };
+
+    // Remove answer from a question in this topic
+    const removeAnswer = (questionIndex, answerIndex) => {
+        const currentQuestions = [...(topic.questions || [])];
+        const removedAnswer = currentQuestions[questionIndex].answers[answerIndex];
+        
+        if (removedAnswer?.id) {
+            setRemovedAnswers((prev) => [...prev, removedAnswer.id]);
+        }
+        
+        currentQuestions[questionIndex].answers.splice(answerIndex, 1);
+        handleTopicChange(path, "questions", currentQuestions);
+    };
+
+    // Handle question or answer change in this topic
+    const handleQuestionChange = (questionIndex, field, value, answerIndex = null) => {
+        const currentQuestions = [...(topic.questions || [])];
+        
+        if (field === "answers" && answerIndex !== null) {
+            // Update specific answer
+            currentQuestions[questionIndex].answers[answerIndex] = value;
+        } else {
+            // Update question field
+            currentQuestions[questionIndex][field] = value;
+        }
+        
+        handleTopicChange(path, "questions", currentQuestions);
+    };
+
     useEffect(() => {
         if (!topic.image) {
             setPreview(null);
@@ -22,16 +106,16 @@ export default function Topic({
         const objectUrl = URL.createObjectURL(topic.image);
         setPreview(objectUrl);
 
-        // cleanup to avoid memory leaks
         return () => URL.revokeObjectURL(objectUrl);
     }, [topic]);
+
     return (
         <div
-            key={index} style={{ backgroundColor: topic.color != "#000000" ? topic.color : "#f9fafb" }} // fallback gray
-            className={` pl-4 py-1 pr-1 border rounded-xl dark:border-gray-600 bg-gray-50  dark:bg-gray-700 rounded-md space-y-4 mb-2`}
+            key={index} 
+            style={{ backgroundColor: topic.color !== "#000000" ? topic.color : "#f9fafb" }}
+            className="pl-4 py-1 pr-1 border rounded-xl dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md space-y-4 mb-2"
         >
             <div className="bg-white dark:bg-gray-900 p-5 rounded-r-xl relative">
-
                 <button
                     type="button"
                     onClick={() => removeTopic(path)}
@@ -39,6 +123,7 @@ export default function Topic({
                 >
                     ✕
                 </button>
+                
                 <div>
                     <label className="block text-sm text-gray-700 dark:text-gray-300">
                         Topic Title
@@ -74,17 +159,18 @@ export default function Topic({
                     </label>
                     <input
                         type="url"
-                        value={topic.video}
-                        onChange={(e) => handleTopicChange(path,"video",e.target.value)}
+                        value={topic.video || ""}
+                        onChange={(e) => handleTopicChange(path, "video", e.target.value)}
                         className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                 </div>
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Image
                     </label>
-                    {preview ? <img src={preview} className="pt-4" /> : topic.image_path &&
-                        <img src={`storage/${topic.image_path}`} className="pt-4" />
+                    {preview ? <img src={preview} className="pt-4" alt="Preview" /> : topic.image_path &&
+                        <img src={`storage/${topic.image_path}`} className="pt-4" alt="Current" />
                     }
                     <input
                         type="file"
@@ -93,11 +179,11 @@ export default function Topic({
                         className="mt-1 block w-full text-gray-900 dark:text-gray-100"
                     />
                 </div>
+
                 <div>
                     <label className="block text-sm text-gray-700 dark:text-gray-300">
                         Color
                     </label>
-
                     <div className="flex space-x-3">
                         {colors.map((c) => (
                             <button
@@ -112,27 +198,61 @@ export default function Topic({
                     </div>
                 </div>
 
+                {/* Questions Section for this Topic */}
+                <div className="mt-6 border-t pt-4">
+                    <h4 className="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">
+                        Questions in this Topic
+                    </h4>
+
+                    {Array.isArray(topic.questions) && topic.questions.map((question, qIndex) => (
+                        <Question
+                            key={qIndex}
+                            question={question}
+                            index={qIndex}
+                            handleQuestionChange={handleQuestionChange}
+                            addAnswer={addAnswer}
+                            removeAnswer={removeAnswer}
+                            removeQuestion={removeQuestion}
+                        />
+                    ))}
+                    
+                {/* Nested Topics (Recursive) */}
                 {Array.isArray(topic.topics) &&
                     topic.topics.map((subtopic, subIndex) => (
-
-                        <Topic key={subIndex}
-                            index={index}
+                        <Topic 
+                            key={subIndex}
+                            index={subIndex}
                             addSubTopic={addSubTopic}
                             handleTopicChange={handleTopicChange}
                             path={[...path, subIndex]}
                             removeTopic={removeTopic}
                             topic={subtopic}
-                            colors={colors}></Topic>
+                            colors={colors}
+                            setRemovedQuestions={setRemovedQuestions}
+                            setRemovedAnswers={setRemovedAnswers}
+                        />
                     ))}
+                    <button 
+                        type="button" 
+                        onClick={addQuestion}
+                        className="text-green-600 hover:underline"
+                    >
+                        + Add Question to this Topic
+                    </button>
+                </div>
 
-                <button
-                    type="button"
-                    onClick={() => addSubTopic(path)}
-                    className="text-indigo-600 hover:underline"
-                >
-                    + Add Topic
-                </button>
+                {/* Add SubTopic button */}
+                <div className="mt-4">
+                    <button
+                        type="button"
+                        onClick={() => addSubTopic(path)}
+                        className="text-indigo-600 hover:underline"
+                    >
+                        + Add SubTopic
+                    </button>
+                </div>
+
             </div>
         </div>
-    )
+    );
 }

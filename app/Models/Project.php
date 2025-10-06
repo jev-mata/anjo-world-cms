@@ -30,4 +30,5 @@ class Project extends Model
     {
         return $this->hasMany(Topics::class, 'content_id')->with('topics')->where('parent_id', '=', null);
     }
+
 }

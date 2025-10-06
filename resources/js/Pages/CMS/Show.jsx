@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import bg from '../../../img/bg.png'
 import TITLE from '../../../img/TITLE.png'
-import logo from '../../../img/anjo-logo.png'
 import mascott from '../../../img/anjo-mascott.png'
 import ShowTopics from './Component/ShowTopics';
+import axios from 'axios';
 export default function Show({ groupcontent }) {
     const [project, setproject] = useState(groupcontent.projects);
     const [currentproject, setcurrentproject] = useState(project[0]);
@@ -15,20 +15,19 @@ export default function Show({ groupcontent }) {
 
     useEffect(() => {
         const getProj = project.find((prj) => prj.id === activeTab);
-        setcurrentproject(getProj)
+        onTabClick(getProj.tab_title);
+        setcurrentproject(getProj);
     }, [activeTab])
+    function onTabClick(tabName) {
+        axios.post(`/analytics/tab`, {
+          content_id: currentproject.id,
+          tab_name: tabName
+        });
+      }
     const getYoutubeEmbedUrl = (url) => {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     };
-    const link = useRef(document.querySelector("link[rel*='icon']"));
-
-    useEffect(() => {
-        const current = link.current;
-        if (current) {
-            current.href = logo;
-        }
-    }, [logo]);
     useEffect(() => {
 
         const timer = setTimeout(() => {
@@ -74,7 +73,7 @@ export default function Show({ groupcontent }) {
 
                     <Head title={currentproject?.title}></Head>
                     <div
-                        className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center p-6 "
+                        className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center md:p-6 sm:pt-6"
                     >
                         {/* Navbar */}
                         <div className="flex space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-md">
@@ -82,9 +81,9 @@ export default function Show({ groupcontent }) {
                                 <button
                                     key={proj.id}
                                     onClick={() => setActiveTab(proj.id)}
-                                    className={`px-4 py-2 rounded-full text-sm font-semibold transition ${activeTab === proj.id
-                                        ? ` text-white`
-                                        : "text-gray-800 hover:bg-gray-200"
+                                    className={`px-4 py-2 rounded-full text-sm font-semibold  border-2 border-gray-800 border transition ${activeTab === proj.id
+                                        ? ` text-white  border-solid `
+                                        : "text-gray-800 border-dashed  hover:bg-gray-200"
                                         }`}
                                     style={{
                                         backgroundColor: proj.color
@@ -96,7 +95,7 @@ export default function Show({ groupcontent }) {
                         </div>
 
                         {/* Ride Card */}
-                        <div className={`bg-white px-6 rounded-lg ${currentproject?.image_path && 'mt-40'} mb-5 pb-6`}>
+                        <div className={`bg-white  px-3  rounded-lg ${currentproject?.image_path && 'mt-40'} mb-5 pb-6`}>
 
                             {currentproject?.image_path &&
                                 <img
@@ -120,8 +119,8 @@ export default function Show({ groupcontent }) {
                                 </div>
 
                                 {/* Content */}
-                                {Array.isArray(currentproject?.topics) && currentproject.topics.map((topic) =>
-                                    <ShowTopics topic={topic}></ShowTopics>
+                                {Array.isArray(currentproject?.topics) && currentproject.topics.map((topic,index) =>
+                                    <ShowTopics topic={topic} key={index}></ShowTopics>
                                 )}
 
                             </div>

@@ -5,10 +5,10 @@ export default function ApplicationLogo(props) {
     return (
         <div {...props}>
             {/* Light mode logo */}
-            <img src={anjo} alt="Logo" className="block dark:hidden h-10" />
+            <img src={anjo} alt="Logo" className="block dark:hidden h-14" />
 
             {/* Dark mode logo */}
-            <img src={anjo} alt="Logo" className="hidden dark:block h-10" />
+            <img src={anjo} alt="Logo" className="hidden dark:block h-14" />
         </div>
     );
 }

@@ -1,12 +1,13 @@
 import { useEffect } from "react"
 
+import ShowQna from "./ShowQna";
 export default function ShowTopics({ topic }) {
     useEffect(() => {
         console.log(topic)
     }, [topic])
     return (
         <div
-            className={`${topic.parent_id != null ? " pl-6 pt-1 pb-1 pr-1 -mx-3 " : " px-6 "} py-2 text-left bg-white rounded-2xl m-3`} style={{
+            className={`${topic.parent_id != null ? " pl-6 pt-1 pb-1 pr-1 -mx-3 " : " px-4 "} py-2 text-left bg-white rounded-2xl m-2`} style={{
                 backgroundColor: topic.parent_id != null ? topic.color != "#000000" ? topic.color : "" : "",
             }}
         >
@@ -62,10 +63,20 @@ export default function ShowTopics({ topic }) {
 
                 {topic.image_path &&
                     <img className="rounded-lg" src={`/storage/${topic.image_path}`} style={{
-                        width:'100%'
+                        width: '100%'
                     }}></img>}
-                {Array.isArray(topic.topics) && topic.topics.map((sub) =>
-                    <ShowTopics topic={sub}></ShowTopics>
+
+
+                {Array.isArray(topic.questions) && topic.questions.length > 0 && (
+                    <div className="mt-4">
+                        <h4 className="font-bold mb-2 text-gray-700">Quiz</h4>
+                        {topic.questions.map((q) => (
+                            <ShowQna key={q.id} question={q} contentId={topic.id} />
+                        ))}
+                    </div>
+                )}
+                {Array.isArray(topic.topics) && topic.topics.map((sub,index) =>
+                    <ShowTopics topic={sub} key={index}></ShowTopics>
                 )}
             </div>
         </div>
