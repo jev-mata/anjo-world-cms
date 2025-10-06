@@ -5,28 +5,32 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Models\GroupContents;
 use App\Models\PageAnalytics;
-use App\Models\Project;
 use App\Models\TabAnalytics;
-use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
-
-use Inertia\Inertia;
+use App\Models\Topics;
 
 Route::get('/', function () {
     return redirect('/dashboard');
-}); 
+});
 Route::get('/dashboard', function () {
-    $projects = GroupContents::all();
+    $projects = GroupContents::with(['projects.topics.content'])->get();
     foreach ($projects as $group) {
-        $group->analytics_today = PageAnalytics::where('content_id', $group->id)
+        // Get all topic IDs that belong to this group through its contents
+        $topicIds = Topics::whereHas('content', function ($query) use ($group) {
+            $query->where('group_contents_id', $group->id);
+        })->pluck('id');
+
+        // Today's analytics - count page views for all topics in this group
+        $group->analytics_today = PageAnalytics::whereIn('content_id', $topicIds)
             ->whereDate('date', today())
             ->count();
 
-        $group->analytics_total = PageAnalytics::where('content_id', $group->id)->count();
+        // Total analytics - count all page views for all topics in this group
+        $group->analytics_total = PageAnalytics::whereIn('content_id', $topicIds)
+            ->count();
 
-        // Tabs usage (group by tab_name)
+        // Tabs usage - get tab analytics for all topics in this group
         $group->tab_stats = TabAnalytics::select('tab_name', DB::raw('count(*) as total'))
-            ->where('content_id', $group->id)
+            ->whereIn('content_id', $topicIds)
             ->groupBy('tab_name')
             ->get();
     }
@@ -38,10 +42,11 @@ Route::get('/dashboard', function () {
 // routes/web.php
 Route::post('/analytics/tab', function (Illuminate\Http\Request $request) {
     \App\Services\AnalyticsService::recordTabView($request->content_id, $request->tab_name);
+
     return response()->json(['status' => 'ok']);
 });
-Route::get('/analytics/view/{id}', [AnalyticsController::class,'show'])->middleware(['auth', 'verified'])->name('analytics.show');
-Route::post('/analytics/question', [AnalyticsController::class,'store'])
+Route::get('/analytics/view/{id}', [AnalyticsController::class, 'show'])->middleware(['auth', 'verified'])->name('analytics.show');
+Route::post('/analytics/question', [AnalyticsController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('analytics.store');
 
@@ -51,5 +56,5 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 Route::get('/pages/view/{project}', [ProjectController::class, 'show'])->name('projects.show');
-    
+
 require __DIR__.'/auth.php';
