@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\NewContent;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -64,41 +66,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::delete('/projects', [ProjectController::class, 'delete'])->name('projects.delete');
-    Route::post('/newcontent', function (Request $request) {
-        // Validate and store data
-        $validated = $request->validate([
-            'title' => 'required|string',
-        ]);
-
-        // Example: save to database
-        $groupcontent = \App\Models\GroupContents::create($validated);
-
-        $groupcontents = \App\Models\GroupContents::all();
-
-        return response()->json([
-            'message' => 'Data submitted successfully!',
-            'data' => $validated,
-            'groupcontent' => $groupcontent,
-            'groupcontents' => $groupcontents,
-        ], 201);
-    });
-    Route::delete('/newcontent', function (Request $request) {
-        // Validate and store data
-        $validated = $request->validate([
-            'id' => 'required',
-        ]);
-
-        // Example: save to database
-        $groupContent = \App\Models\GroupContents::find($validated['id']);
-        $groupContent->delete();
-        $groupcontents = \App\Models\GroupContents::all();
-
-        return response()->json([
-            'message' => 'Data deleted successfully!',
-            'groupcontents' => $groupcontents,
-            'data' => $validated,
-        ], 201);
-    });
+    Route::post('/newcontent', [NewContent::class,'store']);
+    Route::delete('/newcontent', [NewContent::class,'delete']);
 
     Route::post('/projects', [ProjectController::class, 'store']); 
 });

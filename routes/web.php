@@ -50,6 +50,7 @@ Route::get('/dashboard', function () {
         'groupcontents' => $projects,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+ 
 // routes/web.php
 Route::post('/analytics/tab', function (Illuminate\Http\Request $request) {
     \App\Services\AnalyticsService::recordTabView($request->content_id, $request->tab_name);
