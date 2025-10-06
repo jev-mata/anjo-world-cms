@@ -1,1 +1,0 @@
-import{r as t,j as e}from"./app-BOMIEt7Z.js";function a(){const[r,o]=t.useState("");return e.jsx("div",{style:{width:"100%",backgroundColor:"rgba(0, 0, 0, 0.56)",height:"100%",maxHeight:"90vh"}})}export{a as default};

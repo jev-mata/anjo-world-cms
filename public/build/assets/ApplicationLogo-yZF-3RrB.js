@@ -1,0 +1,1 @@
+import{j as o}from"./app-CxP83dOW.js";const s="/build/assets/anjo-logo-Cgfh77jb.png";function n(a){return o.jsxs("div",{...a,children:[o.jsx("img",{src:s,alt:"Logo",className:"block dark:hidden h-14"}),o.jsx("img",{src:s,alt:"Logo",className:"hidden dark:block h-14"})]})}export{s as A,n as a};

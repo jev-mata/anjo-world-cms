@@ -82,7 +82,7 @@ export default function Show({ groupcontent }) {
                                     key={proj.id}
                                     onClick={() => setActiveTab(proj.id)}
                                     className={`px-4 py-2 rounded-full text-sm font-semibold  border-2 border-gray-800 border transition ${activeTab === proj.id
-                                        ? ` text-white  border-solid `
+                                        ? proj.color!=null?` text-white  border-solid `:` text-gray-800  border-solid `
                                         : "text-gray-800 border-dashed  hover:bg-gray-200"
                                         }`}
                                     style={{
