@@ -119,7 +119,7 @@ export default function Dashboard({ groupcontents }) {
                                 <input type='text' placeholder='Topic Title' className='w-full dark:text-gray-800' value={newTitle} onChange={(e) => setNewTitle(e.target.value)}></input>
                             </div>
                             <div className="p-6 text-gray-900 dark:text-gray-100" style={{ alignContent: 'center' }} >
-                                <button onClick={handleSubmit} className='bg-gray-300 dark:bg-gray-700 px-5 py-3 rounded-lg dark:text-white text-gray-800'>Add</button>
+                                <button onClick={handleSubmit} className='bg-gray-300 dark:bg-gray-700 px-5 py-3 rounded-lg dark:text-white text-gray-800  hover:bg-gray-400  dark:hover:bg-gray-500 '>Add</button>
                             </div>
                         </div>
                     }
