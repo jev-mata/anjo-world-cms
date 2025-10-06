@@ -90,8 +90,8 @@ Route::middleware('auth')->group(function () {
 
         // Example: save to database
         $groupContent = \App\Models\GroupContents::find($validated['id']);
-        $groupcontents = \App\Models\GroupContents::all();
         $groupContent->delete();
+        $groupcontents = \App\Models\GroupContents::all();
 
         return response()->json([
             'message' => 'Data deleted successfully!',
