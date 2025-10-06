@@ -17,8 +17,8 @@ class TabAnalytics extends Model
         'device_hash',
         'date',
     ];
-    public function topic()
+    public function content()
     {
-        return $this->belongsTo(Topics::class, 'content_id');
+        return $this->belongsTo(Project::class, 'content_id');
     }
 }

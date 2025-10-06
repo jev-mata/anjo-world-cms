@@ -72,15 +72,17 @@ class AnalyticsController extends Controller
 
         // ✅ Tab interactions
         // ✅ Tab interactions - SIMPLER VERSION
-        $tabs = TabAnalytics::with('topic.content')
+        $tabs = TabAnalytics::with('content')
             ->select('tab_name', DB::raw('COUNT(*) as total'))
-            ->whereHas('topic.content.group_contents', function ($query) use ($id) {
+            ->whereHas('content.group_contents', function ($query) use ($id) {
                 $query->where('id', $id);
             })
-            ->whereBetween('date', [$dateRange[0], $dateRange[1]])
+           ->whereBetween('date', [$dateRange[0], $dateRange[1]])
             ->groupBy('tab_name')
-            ->get()
-            ->map(function ($tab) {
+            ->get();
+            
+        Log::info('tabs:', $tabs->toArray());
+        $tabs= $tabs->map(function ($tab) {
                 // Use the content's tab_title if available, otherwise use tab_name
                 return [
                     'tab_name' => $tab->topic->content->tab_title ?? $tab->tab_name,
