@@ -40,7 +40,7 @@ Route::get('/dashboard', function () {
         ->get()
         ->groupBy(fn($item) => $item->content->tab_title)
         ->map(fn($items) => [
-            'tab_title' => $items->first()->content->tab_title,
+            'tab_name' => $items->first()->content->tab_title,
             'total' => $items->count(),
         ])
         ->values();
