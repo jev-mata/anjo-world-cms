@@ -100,20 +100,5 @@ Route::middleware('auth')->group(function () {
         ], 201);
     });
 
-    Route::post('/projects', [ProjectController::class, 'store']);
-    Route::delete('/newcontent', function (Request $request) {
-        // Validate and store data
-        $validated = $request->validate([
-            'id' => 'required',
-        ]);
-
-        // Example: save to database
-        $groupContent = \App\Models\GroupContents::find($validated['id']);
-        $groupContent->delete();
-
-        return response()->json([
-            'message' => 'Data deleted successfully!',
-            'data' => $validated,
-        ], 201);
-    });
+    Route::post('/projects', [ProjectController::class, 'store']); 
 });

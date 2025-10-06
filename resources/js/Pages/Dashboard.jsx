@@ -47,9 +47,9 @@ export default function Dashboard({ groupcontents }) {
         e.preventDefault();
         if (id == null) return;
         try {
-            const res = await axios.delete("/newcontent", { data: { id: id } });
+            const res = await axios.delete("/newcontent", { data: { id: id } }); 
             if (res.status === 201) {
-                // Reload or update state
+                // Reload or update state 
                 setGroupcontents(res.data.groupcontents);
                 toast.success("✅ tab deleted successfully!");
                 // OR better: update your state instead of full reload
