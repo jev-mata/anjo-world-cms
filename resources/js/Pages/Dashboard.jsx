@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react'; 
+import { useEffect, useRef, useState } from 'react';
 import Edit from './CMS/edit';
 import Create from './CMS/create';
 import QRCode from 'react-qrcode-logo';
@@ -8,9 +8,11 @@ import AnjoLogo from '../../img/anjo-logo.png'
 import Modal from '@/Components/Modal';
 import ProjectItem from './CMS/Component/ProjectItem';
 
+import toast from "react-hot-toast";
 export default function Dashboard({ groupcontents }) {
 
     const [qrSelected, setQrSelected] = useState('');
+    const [groupcontentsthis, setGroupcontents] = useState(groupcontents);
     const [newTitle, setNewTitle] = useState('');
     const [projectSelected, setProjectSelected] = useState(null);
     const [openAdd, setopenAdd] = useState(false);
@@ -27,7 +29,12 @@ export default function Dashboard({ groupcontents }) {
             const res = await axios.post("/newcontent", { title: newTitle });
             if (res.status === 201) {
                 // Reload or update state
-                window.location.reload();
+
+                console.log(res);
+                setProjectSelected(res.data.groupcontent.id);
+                setGroupcontents(res.data.groupcontents);
+                toast.success("✅ new tab added!");
+                // window.location.reload();
                 // OR better: update your state instead of full reload
                 // setItems((prev) => prev.filter(item => item.id !== id));
             }
@@ -43,7 +50,8 @@ export default function Dashboard({ groupcontents }) {
             const res = await axios.delete("/newcontent", { data: { id: id } });
             if (res.status === 201) {
                 // Reload or update state
-                window.location.reload();
+                setGroupcontents(res.data.groupcontents);
+                toast.success("✅ tab deleted successfully!");
                 // OR better: update your state instead of full reload
                 // setItems((prev) => prev.filter(item => item.id !== id));
             }
@@ -144,7 +152,7 @@ export default function Dashboard({ groupcontents }) {
                         </div>
 
                     </div>
-                    {Array.isArray(groupcontents) && groupcontents.map((groupcontent, index) => (
+                    {Array.isArray(groupcontentsthis) && groupcontentsthis.map((groupcontent, index) => (
                         <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 grid grid-cols-9" key={index}>
                             <div className="p-6 text-gray-900  my-auto dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
                                 {groupcontent.title}
@@ -187,7 +195,7 @@ export default function Dashboard({ groupcontents }) {
                                     href={route('analytics.show', groupcontent.id)}
                                     className="p-2 text-center my-auto mx-1 bg-purple-600 text-white rounded-md hover:bg-purple-800"
                                 >
-                                   Detailed Analytics
+                                    Detailed Analytics
                                 </a>
                             </div>
                             <div className="p-2 text-gray-900 dark:text-gray-100   flex-1"  >

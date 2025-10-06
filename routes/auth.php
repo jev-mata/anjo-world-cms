@@ -71,11 +71,15 @@ Route::middleware('auth')->group(function () {
         ]);
 
         // Example: save to database
-        \App\Models\GroupContents::create($validated);
+        $groupcontent = \App\Models\GroupContents::create($validated);
+
+        $groupcontents = \App\Models\GroupContents::all();
 
         return response()->json([
             'message' => 'Data submitted successfully!',
             'data' => $validated,
+            'groupcontent' => $groupcontent,
+            'groupcontents' => $groupcontents,
         ], 201);
     });
     Route::delete('/newcontent', function (Request $request) {
@@ -86,10 +90,12 @@ Route::middleware('auth')->group(function () {
 
         // Example: save to database
         $groupContent = \App\Models\GroupContents::find($validated['id']);
+        $groupcontents = \App\Models\GroupContents::all();
         $groupContent->delete();
 
         return response()->json([
             'message' => 'Data deleted successfully!',
+            'groupcontents' => $groupcontents,
             'data' => $validated,
         ], 201);
     });
