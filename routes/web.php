@@ -57,7 +57,7 @@ Route::post('/analytics/tab', function (Illuminate\Http\Request $request) {
 
     return response()->json(['status' => 'ok']);
 });
-Route::get('/analytics/view/{id}', [AnalyticsController::class, 'show'])->middleware(['auth', 'verified'])->name('analytics.show');
+Route::get('/analytics/view/{id}/{filter}', [AnalyticsController::class, 'show'])->middleware(['auth', 'verified'])->name('analytics.show');
 Route::post('/analytics/question', [AnalyticsController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('analytics.store');

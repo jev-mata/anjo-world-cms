@@ -35,12 +35,11 @@ class AnalyticsController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    public function show(Request $request, $id)
+    public function show($id, $filter)
     {
         $group = GroupContents::with('projects')->findOrFail($id);
 
         // ✅ Handle filters
-        $filter = $request->query('filter', 'today');
         $dateRange = match ($filter) {
             'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
             'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
@@ -77,25 +76,25 @@ class AnalyticsController extends Controller
             ->whereHas('content.group_contents', function ($query) use ($id) {
                 $query->where('id', $id);
             })
-           ->whereBetween('date', [$dateRange[0], $dateRange[1]])
+            ->whereBetween('date', [$dateRange[0], $dateRange[1]])
             ->groupBy('tab_name')
             ->get();
-            
+
         Log::info('tabs:', $tabs->toArray());
-        $tabs= $tabs->map(function ($tab) {
-                // Use the content's tab_title if available, otherwise use tab_name
-                return [
-                    'tab_name' => $tab->topic->content->tab_title ?? $tab->tab_name,
-                    'total' => $tab->total,
-                ];
-            });
+        $tabs = $tabs->map(function ($tab) {
+            // Use the content's tab_title if available, otherwise use tab_name
+            return [
+                'tab_name' => $tab->topic->content->tab_title ?? $tab->tab_name,
+                'total' => $tab->total,
+            ];
+        });
 
         Log::info('tabs:', $tabs->toArray());
         // ✅ Overall correct vs incorrect - FIXED VERSION
         $questionStats = QuestionAnalytics::whereHas('question.topic.content.group_contents', function ($query) use ($id) {
             $query->where('id', $id);
         })->
-        select('is_correct', DB::raw('COUNT(*) as total')) 
+        select('is_correct', DB::raw('COUNT(*) as total'))
             ->whereBetween('date', [$dateRange[0], $dateRange[1]])
             ->groupBy('is_correct')
             ->get()
@@ -132,7 +131,7 @@ class AnalyticsController extends Controller
 
         Log::info('Question Breakdown:', $questionBreakdown->toArray());
 
-        return inertia('Analytics/Show', [
+        return response()->json([
             'group' => $group,
             'filter' => $filter,
             'views' => $views,

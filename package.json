@@ -29,6 +29,8 @@
         "@mui/icons-material": "^7.0.2",
         "@mui/material": "^7.0.2",
         "@mui/styled-engine-sc": "^7.0.2",
+        "framer-motion": "^12.23.24",
+        "lucide-react": "^0.545.0",
         "qrcode.react": "^4.2.0",
         "react-hot-toast": "^2.6.0",
         "react-qrcode-logo": "^4.0.0",

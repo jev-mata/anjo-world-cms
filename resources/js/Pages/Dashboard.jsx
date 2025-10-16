@@ -1,346 +1,373 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
-import Edit from './CMS/edit';
-import Create from './CMS/create';
-import QRCode from 'react-qrcode-logo';
-import AnjoLogo from '../../img/anjo-logo.png'
-import Modal from '@/Components/Modal';
-import ProjectItem from './CMS/Component/ProjectItem';
-
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Head, usePage } from "@inertiajs/react";
+import { useContext, useEffect, useRef, useState } from "react";
+import QRCode from "react-qrcode-logo";
+import AnjoLogo from "../../img/anjo-logo.png";
 import toast from "react-hot-toast";
+import Modal from "@/Components/Modal";
+import Edit from "./CMS/edit";
+import { ChartBarIcon, ChartPieIcon, MoonIcon, SunIcon, TrashIcon } from "@heroicons/react/24/solid";
+
+import { ThemeContext } from '@/Components/ThemeContext';
+import Dropdown from "@/Components/Dropdown";
+import AnalyticsShowSidebar from "./Analytics/AnalyticsShowSidebar";
+import { AutoGraph, WidthFull } from "@mui/icons-material";
+import { Eye, Pencil } from "lucide-react";
 export default function Dashboard({ groupcontents }) {
-
-    const [qrSelected, setQrSelected] = useState('');
+    const user = usePage().props.auth.user;
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const { theme, toggleTheme } = useContext(ThemeContext);
+    const [search, setSearch] = useState("");
+    const [filter, setFilter] = useState("all"); // all | today | none
+    const [qrSelected, setQrSelected] = useState(null);
+    const [openAdd, setOpenAdd] = useState(false);
+    const [newTitle, setNewTitle] = useState("");
     const [groupcontentsthis, setGroupcontents] = useState(groupcontents);
-    const [newTitle, setNewTitle] = useState('');
+    const qrRef = useRef(null);
+    const editRef = useRef(null);
     const [projectSelected, setProjectSelected] = useState(null);
-    const [openAdd, setopenAdd] = useState(false);
+    const [projectSelectedAnalytics, setProjectSelectedAnalytics] = useState(null);
+    const [openAnalytics, setOpenAnalytics] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState(null);
 
-    const editRef = useRef();
-    useEffect(() => {
-        // console.log(projectSelected);
-    }, [projectSelected])
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
+    const handleSubmit = async () => {
         try {
             const res = await axios.post("/newcontent", { title: newTitle });
             if (res.status === 201) {
-                // Reload or update state
-
-                console.log(res);
-                setProjectSelected(res.data.groupcontent.id);
                 setGroupcontents(res.data.groupcontents);
-                toast.success("✅ new tab added!");
-                // window.location.reload();
-                // OR better: update your state instead of full reload
-                // setItems((prev) => prev.filter(item => item.id !== id));
+                toast.success("✅ New content added!");
+                setNewTitle("");
+                setOpenAdd(false);
             }
         } catch (err) {
-            console.error(err.response?.data || err);
+            console.error(err);
+            toast.error("Failed to add content");
         }
     };
 
-    const handleDelete = async (e, id) => {
-        e.preventDefault();
-        if (id == null) return;
+    const handleDelete = async (id) => {
         try {
-            const res = await axios.delete("/newcontent", { data: { id: id } }); 
+            const res = await axios.delete("/newcontent", { data: { id } });
             if (res.status === 201) {
-                // Reload or update state 
                 setGroupcontents(res.data.groupcontents);
-                toast.success("✅ tab deleted successfully!");
-                // OR better: update your state instead of full reload
-                // setItems((prev) => prev.filter(item => item.id !== id));
+                toast.success("🗑️ Deleted successfully");
             }
         } catch (err) {
-            console.error(err.response?.data || err);
+            console.error(err);
+            toast.error("Failed to delete");
         }
     };
-    const qrRef = useRef(null);
-    const [loading, setLoading] = useState(false);
-    const handleDownload = (val) => {
-        setQrSelected(val);
-        setLoading(true);
+
+    const handleDownload = () => {
         if (!qrRef.current?.canvasRef?.current) return;
-
-        const delay = () => {
-
-            const canvas = qrRef.current.canvasRef.current;
-            console.log(canvas);
-            try {
-                const borderSize = 50; // thickness in px
-                const newCanvas = document.createElement("canvas");
-                newCanvas.width = canvas.width + borderSize * 2;
-                newCanvas.height = canvas.height + borderSize * 2;
-
-                const ctx = newCanvas.getContext("2d");
-
-                // Fill with white border
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
-
-                // Draw original QR in center
-                ctx.drawImage(canvas, borderSize, borderSize);
-
-                const link = document.createElement("a");
-                link.href = newCanvas.toDataURL("image/png");
-                link.download = "qr-code.png";
-                link.click();
-
-                setLoading(false);
-                setQrSelected(null);
-            } catch (err) {
-                console.error("⚠️ Failed to export QR code:", err);
-                alert("Could not download QR. Ensure logo image supports CORS or use a local asset.");
-            }
-        }
-        const resT = setTimeout(() => delay(), 1000);
-
-        return () => clearTimeout(resT);
+        const canvas = qrRef.current.canvasRef.current;
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "qr-code.png";
+        link.click();
     };
+
+    const filtered = groupcontentsthis.filter((g) => {
+        const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase());
+        const matchesFilter =
+            filter === "all" ||
+            (filter === "today" && g.analytics_today > 0) ||
+            (filter === "none" && g.analytics_today === 0);
+
+        return matchesSearch && matchesFilter;
+    });
 
     return (
         <AuthenticatedLayout
-            header={<div className="flex">
+            header={
+                <div className="flex justify-between items-center">
+                    <div className="flex flex-1  gap-3">
 
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-100 flex-1">
-                    Dashboard
-                </h2>
-                <button className="p-2 text-white bg-green-900 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
-                    onClick={() => setopenAdd(true)}
-                >Add Content</button>
-            </div>
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center bg-orange-500 text-white font-bold rounded-full p-3">
+                            <div className="relative  ">
+                                <Dropdown>
+                                    <Dropdown.Trigger>
+                                        <span className="  rounded-md">
+                                            <button
+                                                type="button"
+                                                className=" "
+                                            >
+                                                {`${user.name.split(' ')[0].slice(0, 1)}${user.name.split(' ')[1].slice(0, 1)}`}
+
+                                            </button>
+                                        </span>
+                                    </Dropdown.Trigger>
+
+                                    <Dropdown.Content>
+                                        <Dropdown.Link href={route('profile.edit')}>
+                                            Profile
+                                        </Dropdown.Link>
+                                        <Dropdown.Link href={route('register')}>
+                                            Add User
+                                        </Dropdown.Link>
+                                        <Dropdown>
+
+                                            <button
+                                                onClick={toggleTheme}
+                                                className="p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                                                aria-label="Toggle Theme"
+                                            >
+                                                {theme === 'light' ? (
+                                                    <MoonIcon className="h-6 w-6 text-gray-800" />
+                                                ) : (
+                                                    <SunIcon className="h-6 w-6 text-yellow-400" />
+                                                )
+                                                }
+                                            </button>
+                                        </Dropdown>
+                                        <Dropdown.Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                        >
+                                            Log Out
+                                        </Dropdown.Link>
+                                    </Dropdown.Content>
+                                </Dropdown>
+                            </div>
+                        </div>
+                        <div className="">
+                            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                Dashboard
+                            </p>
+                            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                                Anjo World CMS
+                            </h2>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setOpenAdd(true)}
+                        className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                    >
+                        + Add Content
+                    </button> <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                        aria-label="Toggle Theme"
+                    >
+                        {theme === 'light' ? (
+                            <MoonIcon className="h-6 w-6 text-gray-800" />
+                        ) : (
+                            <SunIcon className="h-6 w-6 text-yellow-400" />
+                        )
+                        }
+                    </button>
+
+                </div>
             }
         >
             <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-[90%] sm:px-6 lg:px-8">
-
-                    {openAdd &&
-                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 flex">
-                            <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
-
-                                <input type='text' placeholder='Topic Title' className='w-full dark:text-gray-800' value={newTitle} onChange={(e) => setNewTitle(e.target.value)}></input>
-                            </div>
-                            <div className="p-6 text-gray-900 dark:text-gray-100" style={{ alignContent: 'center' }} >
-                                <button onClick={handleSubmit} className='bg-gray-300 dark:bg-gray-700 px-5 py-3 rounded-lg dark:text-white text-gray-800  hover:bg-gray-400  dark:hover:bg-gray-500 '>Add</button>
-                            </div>
-                        </div>
-                    }
-                    <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-5 grid grid-cols-9">
-                        <div className="p-6 text-gray-900 dark:text-gray-100 ">
-                            Title
-                        </div>
-                        {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1">
-                            Description
-                        </div> */}
-                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center col-span-3">
-                            Actions
-                        </div>
-                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center  col-span-3">
-                            Analytics
-                        </div>
-                        <div className="p-6 text-gray-900 dark:text-gray-100  text-center  ">
-                            QR
-                        </div>
-                        <div className="py-6 pl-6 text-gray-900 dark:text-gray-100 text-right pr-5 ">
-                            Action
-                        </div>
-
+            {/* 🔍 Search + Filter */}
+            <div className="mx-auto max-w-[95%] mt-10">
+                <div className="flex justify-between items-center flex-wrap gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by title..."
+                        className="w-full sm:w-1/3 p-2 rounded-md border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring focus:ring-indigo-400"
+                    />
+                    <div className="flex gap-3">
+                        {["all", "today", "none"].map((key) => (
+                            <button
+                                key={key}
+                                onClick={() => setFilter(key)}
+                                className={`px-5 py-2 rounded-full ${filter === key
+                                    ? "bg-gray-900 text-white"
+                                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                                    }`}
+                            >
+                                {key === "all"
+                                    ? "All"
+                                    : key === "today"
+                                        ? "Views Today"
+                                        : "No Views Yet"}
+                            </button>
+                        ))}
                     </div>
-                    {Array.isArray(groupcontentsthis) && groupcontentsthis.map((groupcontent, index) => (
-                        <div className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg my-2 grid grid-cols-9" key={index}>
-                            <div className="p-6 text-gray-900  my-auto dark:text-gray-100 flex-1" style={{ alignContent: 'center' }} >
-                                {groupcontent.title}
-                            </div>
-                            {/* <div className="p-6 text-gray-900 dark:text-gray-100 flex-1" style={{ alignContent: 'center' }}>
-                                {project[0].description}
-                            </div> */}
-                            <div className="p-4  col-span-3 my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 grid-cols-3 grid" style={{ alignContent: 'center' }}>
-                                <button className="p-2 text-gray-100 bg-green-800 rounded-md  hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    onClick={() => setProjectSelected(groupcontent.id)}
-                                >Edit</button>
-                                <ProjectItem groupcontent={groupcontent} handleDelete={handleDelete}></ProjectItem>
-                                <a
+                </div>
 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    href={route('projects.show', groupcontent.id)}
-                                    className="p-2 mx-1 bg-blue-800 text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-                                >
-                                    View
-                                </a>
-                            </div>
+                {/* 🧩 Card Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2  md:grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
+                    {filtered.map((item, idx) => (
+                        <div
+                            key={idx} className="bg-white space-x-5 flex dark:bg-gray-800 shadow-md rounded-2xl p-6 flex-row justify-between border border-gray-100 dark:border-gray-700"
+                        >
+                            <div
+                                className="flex flex-1 flex-col"
+                            >
 
-                            <div className="p-4 col-span-3 grid grid-cols-3 my-auto mx-auto text-gray-900 dark:text-gray-100 flex-1 " style={{ alignContent: 'center' }}>
-                                <div className='grid '>
-                                    <strong>Views Today: {groupcontent.analytics_today}</strong>
-
-                                    <strong>Total Views: {groupcontent.analytics_total}</strong>
-                                </div>
-                                {groupcontent.tab_stats?.length > 0 && (
-                                    <div className="mt-2 grid">
-                                        <strong>Tabs Accessed:</strong>
-                                        <ul className="list-disc list-inside text-sm">
-                                            <li >{groupcontent.tab_stats[0].tab_name}: {groupcontent.tab_stats[0].total}</li>
-                                            <li>...</li>
-                                        </ul>
+                                <div>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                            {item.title}
+                                        </h3>
+                                        <span className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-gray-600 dark:text-gray-300">
+                                            {item.created_at?.slice(0, 10) || "—"}
+                                        </span>
                                     </div>
-                                )}
-                                <a
-                                    href={route('analytics.show', groupcontent.id)}
-                                    className="p-2 text-center my-auto mx-1 bg-purple-600 text-white rounded-md hover:bg-purple-800"
+
+                                    {/* Stats */}
+                                    <div className="grid grid-cols-3 grid grid-cols-3 space-x-3 text-center mb-1">
+                                        <div className="rounded-lg bg-gray-50 my-1 dark:bg-gray-700 p-2 aspect-square">
+                                            <p className="text-sm text-left text-gray-500">Views Today</p>
+                                            <p className="font-semibold  text-2xl text-left text-gray-800 dark:text-gray-100">
+                                                {item.analytics_today ?? 0}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-lg bg-gray-50 my-1 dark:bg-gray-700 p-2">
+                                            <p className="text-sm  text-left text-gray-500">Total Views</p>
+                                            <p className="font-semibold text-2xl  text-left text-gray-800 dark:text-gray-100">
+                                                {item.analytics_total ?? 0}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-lg bg-gray-50 my-1 dark:bg-gray-700 p-2">
+                                            <p className="text-sm text-left text-gray-500">Tab Count</p>
+                                            <p className="font-semibold  text-2xl text-left text-gray-800 dark:text-gray-100">
+                                                {item.tab_stats?.length ?? 0}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="  grid grid-cols-3 space-x-3 justify-between">
+                                        <button
+                                            onClick={() => setProjectSelected(item.id)}
+                                            className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-200 dark:bg-gray-700 dark:text-white rounded-md text-sm hover:bg-gray-300 dark:hover:bg-gray-600"
+                                        >
+                                            <Pencil className="w-5 h-5" />
+                                            Edit
+                                        </button>
+
+                                        <a
+                                            href={route("projects.show", item.id)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-200 dark:bg-gray-700 dark:text-white rounded-md text-sm hover:bg-gray-300 dark:hover:bg-gray-600"
+                                        >
+                                            <Eye className="w-5"></Eye> View
+                                        </a>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                    <button onClick={() => {
+                                        setProjectSelectedAnalytics(item.id);
+                                        setOpenAnalytics(true);
+                                    }}
+                                        className="flex items-center justify-center gap-2 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md text-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                                        </svg>
+                                        Detailed Analytics
+                                    </button >
+                                </div>
+                            </div>
+                            {/* QR */}
+                            <div className="flex flex-col justify-center ">
+                                <div className="flex justify-between items-center mb-10">
+                                </div>
+                                <QRCode
+                                    value={route("projects.show", item.id)}
+                                    logoImage={AnjoLogo}
+                                    ecLevel="H"
+                                    qrStyle="dots"
+
+                                    eyeRadius={[5, 5, 5]}
+                                    logoWidth={35}
+                                    logoHeight={35}
+                                />
+                                <button
+                                    onClick={() => handleDownload()}
+                                    className="flex items-center justify-center gap-2 text-indigo-600 dark:text-white hover:underline text-sm text-center mt-4"
                                 >
-                                    Detailed Analytics
-                                </a>
-                            </div>
-                            <div className="p-2 text-gray-900 dark:text-gray-100   flex-1"  >
-                                <span className='flex   my-auto mx-auto' onClick={() => setQrSelected(route('projects.show', groupcontent.id))}>
-
-                                    <QRCode ecLevel="H"
-                                        logoImage={AnjoLogo}
-                                        logoHeight={580}
-                                        eyeRadius={[100, 100, 100]}
-                                        logoWidth={580}
-                                        qrStyle="dots"
-                                        size={1700}
-                                        value={route('projects.show', groupcontent.id)}
-                                        style={{
-                                            width: 70, height: 70,
-                                            marginLeft: 'auto',
-                                            marginRight: 'auto',
-                                            borderColor: 'white',
-                                            borderWidth: 5,
-                                            borderStyle: 'solid',
-                                            borderRadius: 7
-                                        }} />
-                                </span>
-                            </div>
-                            <div className='flex  mr-5'>
-
-                                <button onClick={() => handleDownload(route('projects.show', groupcontent.id))} className='dark:bg-gray-600 bg-gray-200 p-5 rounded-lg my-auto ml-auto'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
                                     Download QR
                                 </button>
                             </div>
                         </div>
                     ))}
-                </div>
-                <div style={{
-                    display: qrSelected ? 'block' : 'none',
-                    position: 'fixed',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%,-50%)',
-                    width: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    height: '100vh'
-                }} onClick={() => !loading && setQrSelected(null)}>
 
-                    {/* <QRCodeSVG value={qrSelected}
-
-                            size={300} // pixel size
-                            bgColor="#ffffff"
-                            fgColor="#000000"
-                            imageSettings={{
-                                src: "/logo.png",     // path to your logo image
-                                x: undefined,         // auto center
-                                y: undefined,         // auto center
-                                height: 80,           // size of logo
-                                width: 80,
-                                excavate: true        // makes a white "hole" behind the logo
-                            }}
-                            level="H" // high error correction so QR still works with logo
-                            style={{
-                                borderColor: 'white',
-                                borderWidth: 5,
-                                borderStyle: 'solid',
-                                position: 'fixed',
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%,-50%)',
-                                width: 'calc((50vh + 50vw)/2)',
-                                height: 'auto',
-                                aspectRatio: '1/1'
-                            }} /> */}
-                    <QRCode value={qrSelected || ""}
-                        ref={qrRef}
-                        ecLevel="H" size={1700}
-                        logoImage={"anjo-logo.png"}
-                        logoHeight={580}
-                        logoWidth={580}
-                        qrStyle="dots"
-                        eyeRadius={[100, 100, 100]}
-                        logoImageOptions={{ crossOrigin: "anonymous" }}
-                        style={{
-                            borderColor: 'white',
-                            borderWidth: 25,
-                            borderStyle: 'solid',
-                            position: 'fixed',
-                            borderRadius: "20px",  // optional: rounded border
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%,-50%)',
-                            width: 'calc((50vh + 50vw)/2)',
-                            height: 'auto',
-                            aspectRatio: '1/1'
-                        }} />;
+                    {/* Add Content Card */}
+                    <div
+                        onClick={() => setOpenAdd(true)}
+                        className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex justify-center items-center text-gray-400 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition"
+                    >
+                        <div className="flex flex-col items-center gap-2 py-16">
+                            <span className="text-4xl">＋</span>
+                            <p className="font-medium">Add Content</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <Modal show={projectSelected}
-                onClose={() => {
-                    // 👈 intercept backdrop click
-                    if (editRef.current) {
-                        editRef.current.handleClose(); // call Edit’s close logic
-                    }
-                }}>
-                <div
-                    className="relative bg-white h-[80vh] rounded-lg shadow-lg overflow-hidden"
-                >
-                    <div className="h-full overflow-y-auto ">
-                        <Edit
 
-                            ref={editRef} // 👈 expose handleClose via forwardRef
+            {/* ➕ Modal for Add */}
+            <Modal show={openAdd} onClose={() => setOpenAdd(false)}>
+                <div className="bg-white dark:bg-gray-800 rounded p-6   mx-auto">
+                    <h3 className="text-lg dark:text-white font-semibold mb-4">Add New Content</h3>
+                    <input
+                        type="text"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder="Enter title..."
+                        className="w-full border p-2 rounded-md mb-4 dark:bg-gray-700 dark:text-white"
+                    />
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={() => setOpenAdd(false)}
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+                        >
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* ✏️ Edit Modal */}
+            <Modal
+                show={projectSelected}
+                onClose={() => {
+                    if (editRef.current) editRef.current.handleClose();
+                }}
+            >
+                <div className="relative bg-white h-[80vh] rounded-lg shadow-lg overflow-hidden">
+                    <div className="h-full overflow-y-auto">
+                        <Edit
+                            ref={editRef}
                             projectSelected={projectSelected}
                             onCloseConfirmed={() => setProjectSelected(null)}
                         />
                     </div>
                 </div>
-
             </Modal>
+            <AnalyticsShowSidebar
+                isOpen={openAnalytics}
+                onClose={() => setOpenAnalytics(false)}
+                projectID={projectSelectedAnalytics}
 
-
-
-            {/* {
-                openAdd &&
-                <div className='' onClick={() => setopenAdd(false)} style={{
-
-                    position: 'fixed',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%,-50%)',
-                    width: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    height: '100vh'
-                }}>
-                    <div onClick={(e) => e.stopPropagation()} style={{
-
-                        width: '70%',
-                        position: 'fixed',
-                        height: '90vh',
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%,-50%)',
-                        overflowY: 'auto'
-                    }}>
-
-                        <Create></Create>
-                    </div>
-                </div>
-            } */}
+            />
         </AuthenticatedLayout>
     );
 }
