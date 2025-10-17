@@ -29,6 +29,9 @@ export default function Dashboard({ groupcontents }) {
     const [projectSelectedAnalytics, setProjectSelectedAnalytics] = useState(null);
     const [openAnalytics, setOpenAnalytics] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+    const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
 
     const handleSubmit = async () => {
         try {
@@ -255,7 +258,11 @@ export default function Dashboard({ groupcontents }) {
                                             <Eye className="w-5"></Eye> View
                                         </a>
                                         <button
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => {
+
+                                                setDeleteTargetId(item.id);
+                                                setConfirmDelete(true);
+                                            }}
                                             className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -277,6 +284,69 @@ export default function Dashboard({ groupcontents }) {
                                     </button >
                                 </div>
                             </div>
+                            {/* 🗑️ Delete Confirmation Modal */}{/* 🗑️ Delete Confirmation Modal */}
+                            <Modal show={confirmDelete} onClose={() => setConfirmDelete(false)}>
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg  mx-auto">
+                                    <h2 className="text-xl font-bold mb-3 dark:text-white">Delete Content?</h2>
+
+                                    {/* Get the selected title */}
+                                    {(() => {
+                                        const selected = groupcontentsthis.find((g) => g.id === deleteTargetId);
+                                        if (!selected) return null;
+                                        return (
+                                            <>
+                                                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                                                    This will permanently delete
+                                                    <span className="font-semibold text-indigo-500"> “{selected.title}” </span>
+                                                    and all related analytics.
+                                                </p>
+                                                <p className="text-gray-500 dark:text-gray-400 mb-3 text-sm">
+                                                    To confirm, please type the title below:
+                                                </p>
+
+                                                <input
+                                                    type="text"
+                                                    value={deleteConfirmInput}
+                                                    onChange={(e) => setDeleteConfirmInput(e.target.value)}
+                                                    placeholder={`Type "${selected.title}" to confirm`}
+                                                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 mb-6"
+                                                />
+
+                                                <div className="flex justify-end gap-3">
+                                                    <button
+                                                        onClick={() => {
+                                                            setConfirmDelete(false);
+                                                            setDeleteConfirmInput("");
+                                                        }}
+                                                        className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        disabled={deleteConfirmInput !== selected.title}
+                                                        onClick={async () => {
+                                                            if (deleteTargetId && deleteConfirmInput === selected.title) {
+                                                                await handleDelete(deleteTargetId);
+                                                                setConfirmDelete(false);
+                                                                setDeleteTargetId(null);
+                                                                setDeleteConfirmInput("");
+                                                            }
+                                                        }}
+                                                        className={`px-4 py-2 rounded-md text-white transition-colors ${deleteConfirmInput === selected.title
+                                                                ? "bg-red-600 hover:bg-red-700"
+                                                                : "bg-red-300 cursor-not-allowed"
+                                                            }`}
+                                                    >
+                                                        Yes, Delete
+                                                    </button>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            </Modal>
+
+
                             {/* QR */}
                             <div className="flex flex-col justify-center ">
                                 <div className="flex justify-between items-center mb-10">
