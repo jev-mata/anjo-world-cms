@@ -13,7 +13,7 @@ Route::get('/', function () {
     return redirect('/dashboard');
 });
 Route::get('/dashboard', function () {
-    $projects = GroupContents::with(['projects.topics.content'])->get();
+    $projects = GroupContents::with(['projects.topics.content'])->orderBy("created_at",'desc')->get();
     foreach ($projects as $group) {
         // Get all topic IDs that belong to this group through its contents
         $topicIds = Project::whereHas('topics', function ($query) use ($group) {
