@@ -215,7 +215,7 @@ export default function Dashboard({ groupcontents }) {
                 </div>
 
                 {/* 🧩 Card Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2  md:grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2  md:grid-cols-2 xl:grid-cols-2 gap-8 mt-8">
                     {filtered.map((item, idx) => (
                         <div
                             key={idx} className="bg-white space-x-5 flex dark:bg-gray-800 shadow-md rounded-2xl p-6 flex-row justify-between border border-gray-100 dark:border-gray-700"
