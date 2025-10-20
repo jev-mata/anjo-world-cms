@@ -33,6 +33,7 @@ export default function Dashboard({ groupcontents }) {
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
 
+    const [loading, setLoading] = useState(false);
     const handleSubmit = async () => {
         try {
             const res = await axios.post("/newcontent", { title: newTitle });
@@ -61,15 +62,47 @@ export default function Dashboard({ groupcontents }) {
         }
     };
 
-    const handleDownload = () => {
-        if (!qrRef.current?.canvasRef?.current) return;
-        const canvas = qrRef.current.canvasRef.current;
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = "qr-code.png";
-        link.click();
-    };
 
+    const handleDownload = (val) => {
+        setQrSelected(val);
+        setLoading(true);
+        if (!qrRef.current?.canvasRef?.current) return;
+
+        const delay = () => {
+
+            const canvas = qrRef.current.canvasRef.current;
+            console.log(canvas);
+            try {
+                const borderSize = 50; // thickness in px
+                const newCanvas = document.createElement("canvas");
+                newCanvas.width = canvas.width + borderSize * 2;
+                newCanvas.height = canvas.height + borderSize * 2;
+
+                const ctx = newCanvas.getContext("2d");
+
+                // Fill with white border
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+                // Draw original QR in center
+                ctx.drawImage(canvas, borderSize, borderSize);
+
+                const link = document.createElement("a");
+                link.href = newCanvas.toDataURL("image/png");
+                link.download = "qr-code.png";
+                link.click();
+
+                setLoading(false);
+                setQrSelected(null);
+            } catch (err) {
+                console.error("⚠️ Failed to export QR code:", err);
+                alert("Could not download QR. Ensure logo image supports CORS or use a local asset.");
+            }
+        }
+        const resT = setTimeout(() => delay(), 1000);
+
+        return () => clearTimeout(resT);
+    }; 
     const filtered = groupcontentsthis.filter((g) => {
         const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase());
         const matchesFilter =
@@ -88,7 +121,7 @@ export default function Dashboard({ groupcontents }) {
 
                         <div className="hidden sm:ms-6 sm:flex sm:items-center bg-orange-500 text-white font-bold rounded-full p-3">
                             <div className="relative  ">
-                                <Dropdown>
+                                <Dropdown >
                                     <Dropdown.Trigger>
                                         <span className="  rounded-md">
                                             <button
@@ -101,7 +134,7 @@ export default function Dashboard({ groupcontents }) {
                                         </span>
                                     </Dropdown.Trigger>
 
-                                    <Dropdown.Content>
+                                    <Dropdown.Content >
                                         <Dropdown.Link href={route('profile.edit')}>
                                             Profile
                                         </Dropdown.Link>
@@ -333,8 +366,8 @@ export default function Dashboard({ groupcontents }) {
                                                             }
                                                         }}
                                                         className={`px-4 py-2 rounded-md text-white transition-colors ${deleteConfirmInput === selected.title
-                                                                ? "bg-red-600 hover:bg-red-700"
-                                                                : "bg-red-300 cursor-not-allowed"
+                                                            ? "bg-red-600 hover:bg-red-700"
+                                                            : "bg-red-300 cursor-not-allowed"
                                                             }`}
                                                     >
                                                         Yes, Delete
@@ -351,18 +384,21 @@ export default function Dashboard({ groupcontents }) {
                             <div className="flex flex-col justify-center ">
                                 <div className="flex justify-between items-center mb-10">
                                 </div>
-                                <QRCode
-                                    value={route("projects.show", item.id)}
-                                    logoImage={AnjoLogo}
-                                    ecLevel="H"
-                                    qrStyle="dots"
+                                <div onClick={() => { setQrSelected(item) }}>
 
-                                    eyeRadius={[5, 5, 5]}
-                                    logoWidth={35}
-                                    logoHeight={35}
-                                />
+                                    <QRCode
+                                        value={route("projects.show", item.id)}
+                                        logoImage={AnjoLogo}
+                                        ecLevel="H"
+                                        qrStyle="dots"
+
+                                        eyeRadius={[5, 5, 5]}
+                                        logoWidth={35}
+                                        logoHeight={35}
+                                    />
+                                </div>
                                 <button
-                                    onClick={() => handleDownload()}
+                                    onClick={() => { setQrSelected(item); handleDownload(route('projects.show', item.id)) }}
                                     className="flex items-center justify-center gap-2 text-indigo-600 dark:text-white hover:underline text-sm text-center mt-4"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -429,6 +465,40 @@ export default function Dashboard({ groupcontents }) {
                             projectSelected={projectSelected}
                             onCloseConfirmed={() => setProjectSelected(null)}
                         />
+                    </div>
+                </div>
+            </Modal>
+            <Modal
+                show={qrSelected != null}
+                onClose={() => {
+                    setQrSelected(null);
+                }}
+            >
+                <div className="relative bg-white py-10 rounded-lg shadow-lg overflow-hidden">
+                    <div className="flex flex-col justify-center mx-auto">
+                        <div className="flex justify-between items-center  pb-5 mx-auto">
+                            <QRCode
+                                ref={qrRef}
+                                value={route("projects.show", qrSelected?.id || 0)}
+                                logoImage={AnjoLogo}
+                                ecLevel="H"
+                                qrStyle="dots"
+                                size={500}
+                                eyeRadius={[5, 5, 5]}
+                                logoWidth={200}
+                                logoHeight={200}
+
+                            />
+                        </div>
+                        <button
+                            onClick={() => handleDownload(qrSelected.id)}
+                            className="flex items-center justify-center gap-2 text-indigo-600   hover:underline text-sm text-center mt-4"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Download QR
+                        </button>
                     </div>
                 </div>
             </Modal>
