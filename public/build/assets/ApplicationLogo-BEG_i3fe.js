@@ -1,1 +1,0 @@
-import{j as o}from"./app-BiioSFrK.js";import{l as s}from"./anjo-logo-CJ3YIgJk.js";function i(l){return o.jsxs("div",{...l,children:[o.jsx("img",{src:s,alt:"Logo",className:"block dark:hidden h-full"}),o.jsx("img",{src:s,alt:"Logo",className:"hidden dark:block h-full"})]})}export{i as A};
