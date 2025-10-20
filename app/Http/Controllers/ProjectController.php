@@ -63,7 +63,7 @@ class ProjectController extends Controller
             'tabs' => 'required|array',
             'tabs.*.title' => 'required|string|max:255',
             'tabs.*.group_contents_id' => 'required|exists:group_contents,id',
-            'tabs.*.image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'tabs.*.image' => 'nullable|file|mimes:jpg,jpeg,png|max:200048',
         ]);
     
         $responseData = [];
@@ -81,7 +81,7 @@ class ProjectController extends Controller
                 'color' => 'nullable|string',
                 'video' => 'nullable|string',
                 'tab_title' => 'nullable|string|max:255',
-                'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+                'image' => 'nullable|file|mimes:jpg,jpeg,png|max:200048',
                 'topics' => 'nullable|array',
                 'removed_topics' => 'nullable|string',
                 'removed_questions' => 'nullable|string',
