@@ -20,7 +20,7 @@ export default function AuthenticatedLayout({ header, children }) {
         }
     }, [logo]);
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-5">
             <nav className="border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
 
             </nav>

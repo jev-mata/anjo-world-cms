@@ -63,7 +63,7 @@ export default function Dashboard({ groupcontents }) {
     };
 
 
-    const handleDownload = () => { 
+    const handleDownload = () => {
         setLoading(true);
         if (!qrRef.current) return;
         if (!qrRef.current?.canvasRef?.current) return;
@@ -140,22 +140,7 @@ export default function Dashboard({ groupcontents }) {
                                         </Dropdown.Link>
                                         <Dropdown.Link href={route('register')}>
                                             Add User
-                                        </Dropdown.Link>
-                                        <Dropdown>
-
-                                            <button
-                                                onClick={toggleTheme}
-                                                className="p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-                                                aria-label="Toggle Theme"
-                                            >
-                                                {theme === 'light' ? (
-                                                    <MoonIcon className="h-6 w-6 text-gray-800" />
-                                                ) : (
-                                                    <SunIcon className="h-6 w-6 text-yellow-400" />
-                                                )
-                                                }
-                                            </button>
-                                        </Dropdown>
+                                        </Dropdown.Link> 
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
@@ -245,7 +230,12 @@ export default function Dashboard({ groupcontents }) {
                                             {item.title}
                                         </h3>
                                         <span className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-gray-600 dark:text-gray-300">
-                                            {item.created_at?.slice(0, 10) || "—"}
+                                            {new Date(item.created_at).toLocaleDateString("en-US", {
+                                                month: "long",
+                                                day: "2-digit",
+                                                year: "numeric"
+                                            })
+                                                || "—"}
                                         </span>
                                     </div>
 
@@ -469,7 +459,7 @@ export default function Dashboard({ groupcontents }) {
                 </div>
             </Modal>
             <div onClick={(e) => setQrSelected(null)} className={`${qrSelected ? 'block' : 'hidden'} z-10 flex-1  bg-gray-500/50 fixed  left-0 top-0 w-full h-full`}>
-                <div onClick={(e) => {e.stopPropagation()}}  className="relative bg-white w-[50%] mx-auto top-[50%] -translate-y-[50%] py-10 rounded-lg shadow-lg overflow-hidden">
+                <div onClick={(e) => { e.stopPropagation() }} className="relative bg-white w-[50%] mx-auto top-[50%] -translate-y-[50%] py-10 rounded-lg shadow-lg overflow-hidden">
                     <div className="flex flex-col justify-center mx-auto">
                         <div className="flex justify-between items-center  pb-5 mx-auto">
                             <QRCode

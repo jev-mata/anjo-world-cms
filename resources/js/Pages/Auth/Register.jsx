@@ -104,13 +104,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-
-                    >
-                        Already registered?
-                    </Link>
+                  
 
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Register
