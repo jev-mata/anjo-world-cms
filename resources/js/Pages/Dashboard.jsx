@@ -63,9 +63,9 @@ export default function Dashboard({ groupcontents }) {
     };
 
 
-    const handleDownload = (val) => {
-        setQrSelected(val);
+    const handleDownload = () => { 
         setLoading(true);
+        if (!qrRef.current) return;
         if (!qrRef.current?.canvasRef?.current) return;
 
         const delay = () => {
@@ -102,7 +102,7 @@ export default function Dashboard({ groupcontents }) {
         const resT = setTimeout(() => delay(), 1000);
 
         return () => clearTimeout(resT);
-    }; 
+    };
     const filtered = groupcontentsthis.filter((g) => {
         const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase());
         const matchesFilter =
@@ -207,7 +207,7 @@ export default function Dashboard({ groupcontents }) {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by title..."
-                        className="w-full sm:w-1/3 p-2 rounded-md border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring focus:ring-indigo-400"
+                        className=" flex-1  p-2 rounded-md border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring focus:ring-indigo-400"
                     />
                     <div className="flex gap-3">
                         {["all", "today", "none"].map((key) => (
@@ -310,8 +310,8 @@ export default function Dashboard({ groupcontents }) {
                                     }}
                                         className="flex items-center justify-center gap-2 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md text-sm"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                                         </svg>
                                         Detailed Analytics
                                     </button >
@@ -388,17 +388,17 @@ export default function Dashboard({ groupcontents }) {
 
                                     <QRCode
                                         value={route("projects.show", item.id)}
-                                        logoImage={AnjoLogo}
+                                        logoImage={"/anjo-logo.png"}
                                         ecLevel="H"
                                         qrStyle="dots"
-
                                         eyeRadius={[5, 5, 5]}
-                                        logoWidth={35}
-                                        logoHeight={35}
+                                        size={120}
+                                        logoWidth={50}
+                                        logoHeight={50}
                                     />
                                 </div>
                                 <button
-                                    onClick={() => { setQrSelected(item); handleDownload(route('projects.show', item.id)) }}
+                                    onClick={() => { setQrSelected(item); handleDownload() }}
                                     className="flex items-center justify-center gap-2 text-indigo-600 dark:text-white hover:underline text-sm text-center mt-4"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -468,30 +468,26 @@ export default function Dashboard({ groupcontents }) {
                     </div>
                 </div>
             </Modal>
-            <Modal
-                show={qrSelected != null}
-                onClose={() => {
-                    setQrSelected(null);
-                }}
-            >
-                <div className="relative bg-white py-10 rounded-lg shadow-lg overflow-hidden">
+            <div onClick={(e) => setQrSelected(null)} className={`${qrSelected ? 'block' : 'hidden'} z-10 flex-1  bg-gray-500/50 fixed  left-0 top-0 w-full h-full`}>
+                <div onClick={(e) => {e.stopPropagation()}}  className="relative bg-white w-[50%] mx-auto top-[50%] -translate-y-[50%] py-10 rounded-lg shadow-lg overflow-hidden">
                     <div className="flex flex-col justify-center mx-auto">
                         <div className="flex justify-between items-center  pb-5 mx-auto">
                             <QRCode
                                 ref={qrRef}
                                 value={route("projects.show", qrSelected?.id || 0)}
-                                logoImage={AnjoLogo}
+                                logoImage={"/anjo-logo.png"}
                                 ecLevel="H"
                                 qrStyle="dots"
-                                size={500}
+                                size={360}
                                 eyeRadius={[5, 5, 5]}
-                                logoWidth={200}
-                                logoHeight={200}
+                                logoWidth={150}
+                                logoHeight={150}
+
 
                             />
                         </div>
                         <button
-                            onClick={() => handleDownload(qrSelected.id)}
+                            onClick={() => handleDownload()}
                             className="flex items-center justify-center gap-2 text-indigo-600   hover:underline text-sm text-center mt-4"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -501,7 +497,7 @@ export default function Dashboard({ groupcontents }) {
                         </button>
                     </div>
                 </div>
-            </Modal>
+            </div>
             <AnalyticsShowSidebar
                 isOpen={openAnalytics}
                 onClose={() => setOpenAnalytics(false)}
