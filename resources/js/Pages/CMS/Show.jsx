@@ -112,10 +112,10 @@ export default function Show({ groupcontent }) {
 
                                     {/* Title */}
                                     <div className="text-center py-4 ">
-                                        <h2 className="text-white font-extrabold text-lg uppercase">
+                                        <h2 className="text-black dark:text-white font-extrabold text-lg uppercase">
                                             {currentproject?.title}
                                         </h2>
-                                        <p className="text-white text-sm tracking-wide">
+                                        <p className="text-black dark:text-white text-sm tracking-wide">
                                             {currentproject?.description}
                                         </p>
                                     </div>
