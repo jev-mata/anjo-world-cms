@@ -143,12 +143,14 @@ export default function Show({ groupcontent }) {
                             className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center md:p-6 sm:pt-6"
                         >
                             {/* Navbar */}
-                            <div className="flex space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-md">
+                            <div className="w-full max-w-full overflow-x-auto rounded-full bg-white px-4 py-2 mb-6 shadow-md">
+                                <div className="flex w-max max-w-none flex-nowrap gap-2">
                                 {project.map((proj) => (
                                     <button
                                         key={proj.id}
                                         onClick={() => setActiveTab(proj.id)}
-                                        className={`px-4 py-2 rounded-full text-sm font-semibold  border-2 border-gray-800 border transition ${activeTab === proj.id
+                                        title={proj?.tab_title}
+                                        className={`shrink-0 max-w-44 md:max-w-60 truncate whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold border-2 border-gray-800 border transition ${activeTab === proj.id
                                             ? proj.color != null ? ` text-white  border-solid ` : ` text-gray-800  border-solid `
                                             : "text-gray-800 border-dashed  hover:bg-gray-200"
                                             }`}
@@ -159,6 +161,7 @@ export default function Show({ groupcontent }) {
                                         {proj?.tab_title}
                                     </button>
                                 ))}
+                                </div>
                             </div>
 
                             {/* Ride Card */}

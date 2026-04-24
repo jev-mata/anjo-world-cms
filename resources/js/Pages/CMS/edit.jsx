@@ -306,7 +306,8 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                             onChange={(e) => setContentTitle(e.target.value)}
                         />
                     </div>
-                    <div className="flex space-x-2 bg-white dark:bg-gray-700 rounded-full px-4 py-2 mb-6 shadow-md">
+                    <div className="w-full max-w-full overflow-x-auto rounded-full bg-white dark:bg-gray-700 px-4 py-2 mb-6 shadow-md">
+                        <div className="flex w-max max-w-none flex-nowrap gap-2">
                         {tabs.map((tab, index) => (
                             <div
                                 key={tab.id}
@@ -314,12 +315,15 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                                 style={{
                                     backgroundColor: tab.color
                                 }}
-                                className={`px-4 py-2 rounded-full cursor-pointer border  ${activeTab === index
+                                title={tab.tab_title || `Tab ${index + 1}`}
+                                className={`flex shrink-0 cursor-pointer items-center rounded-full border px-4 py-2 max-w-48 md:max-w-64 ${activeTab === index
                                     ? "bg-indigo-600 text-white dark:border-white border-[#000000] border-2 font-bold"
                                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                                     }`}
                             >
-                                {tab.tab_title || `Tab ${index + 1}`}
+                                <span className="block min-w-0 truncate whitespace-nowrap">
+                                    {tab.tab_title || `Tab ${index + 1}`}
+                                </span>
 
                                 {tabs.length > 1 && (
                                     <button
@@ -328,7 +332,7 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                                             e.stopPropagation();
                                             removeTab(index, tab.id);
                                         }}
-                                        className="ml-2 text-sm text-red-400 hover:text-red-600"
+                                        className="ml-2 shrink-0 text-sm text-red-400 hover:text-red-600"
                                     >
                                         ✕
                                     </button>
@@ -339,10 +343,11 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                         <button
                             type="button"
                             onClick={addTab}
-                            className="px-3 py-2 bg-green-500 text-white rounded-full hover:bg-green-600"
+                            className="shrink-0 whitespace-nowrap px-3 py-2 bg-green-500 text-white rounded-full hover:bg-green-600"
                         >
                             + Add Tab
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>

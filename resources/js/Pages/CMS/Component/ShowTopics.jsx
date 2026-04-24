@@ -3,6 +3,7 @@ import { useMemo, useState } from "react"
 import ShowQna from "./ShowQna";
 export default function ShowTopics({ topic }) {
     const [expandedItems, setExpandedItems] = useState([]);
+    const topicColor = topic.color && topic.color !== "#000000" ? topic.color : "";
 
     const learnMoreItems = useMemo(() => {
         if (!Array.isArray(topic.learn_more_items)) {
@@ -67,7 +68,7 @@ export default function ShowTopics({ topic }) {
     return (
         <div
             className={`${topic.parent_id != null ? " pl-6 pt-1 pb-1 pr-1 -mx-3 " : " px-4 "} py-2 text-left bg-white rounded-2xl m-2`} style={{
-                backgroundColor: topic.parent_id != null ? topic.color != "#000000" ? topic.color : "" : "",
+                backgroundColor: topicColor,
             }}
         >
             <div
