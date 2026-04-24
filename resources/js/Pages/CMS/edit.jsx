@@ -306,8 +306,8 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                             onChange={(e) => setContentTitle(e.target.value)}
                         />
                     </div>
-                    <div className="w-full max-w-full overflow-x-auto rounded-full bg-white dark:bg-gray-700 px-4 py-2 mb-6 shadow-md">
-                        <div className="flex w-max max-w-none flex-nowrap gap-2">
+                    <div className="w-full max-w-full overflow-x-auto mb-6">
+                        <div className="mx-auto flex w-max max-w-full flex-nowrap gap-2 rounded-full bg-white dark:bg-gray-700 px-4 py-2 shadow-md">
                         {tabs.map((tab, index) => (
                             <div
                                 key={tab.id}

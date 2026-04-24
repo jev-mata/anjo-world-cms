@@ -143,8 +143,8 @@ export default function Show({ groupcontent }) {
                             className="min-h-screen w-full lg:max-w-2xl mx-auto flex flex-col items-center md:p-6 sm:pt-6"
                         >
                             {/* Navbar */}
-                            <div className="w-full max-w-full overflow-x-auto rounded-full bg-white px-4 py-2 mb-6 shadow-md">
-                                <div className="flex w-max max-w-none flex-nowrap gap-2">
+                            <div className="w-full max-w-full overflow-x-auto mb-6">
+                                <div className="mx-auto flex w-max max-w-full flex-nowrap gap-2 rounded-full bg-white px-4 py-2 shadow-md">
                                 {project.map((proj) => (
                                     <button
                                         key={proj.id}
