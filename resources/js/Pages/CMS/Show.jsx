@@ -29,6 +29,71 @@ export default function Show({ groupcontent }) {
         const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
         return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     };
+
+    const [expandedProjectLearnMoreItems, setExpandedProjectLearnMoreItems] = useState([]);
+
+    const getProjectLearnMoreItems = () => {
+        if (!Array.isArray(currentproject?.topics)) {
+            return [];
+        }
+
+        return currentproject.topics
+            .flatMap((topic) => Array.isArray(topic.learn_more_items) ? topic.learn_more_items : [])
+            .map((item, index) => ({
+                ...item,
+                index,
+                trigger: (item.trigger || "").trim(),
+                body: (item.body || "").trim(),
+            }))
+            .filter((item) => item.trigger && item.body);
+    };
+
+    const toggleProjectLearnMore = (itemIndex) => {
+        setExpandedProjectLearnMoreItems((current) =>
+            current.includes(itemIndex)
+                ? current.filter((index) => index !== itemIndex)
+                : [...current, itemIndex]
+        );
+    };
+
+    const renderProjectDescription = () => {
+        const description = currentproject?.description || "";
+        const learnMoreItems = getProjectLearnMoreItems();
+
+        if (learnMoreItems.length === 0) {
+            return description;
+        }
+
+        const triggers = learnMoreItems
+            .map((item) => item.trigger.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+            .sort((a, b) => b.length - a.length);
+        const pattern = new RegExp(`(${triggers.join("|")})`, "g");
+
+        return description.split(pattern).map((part, index) => {
+            const item = learnMoreItems.find((learnMoreItem) => learnMoreItem.trigger === part);
+
+            if (!item) {
+                return part;
+            }
+
+            return (
+                <button
+                    key={`${part}-${index}`}
+                    type="button"
+                    onClick={() => toggleProjectLearnMore(item.index)}
+                    className="font-semibold text-black underline decoration-2 decoration-[#F6940D] underline-offset-2 dark:text-white"
+                    aria-expanded={expandedProjectLearnMoreItems.includes(item.index)}
+                >
+                    {part}
+                </button>
+            );
+        });
+    };
+
+    const visibleProjectLearnMoreItems = getProjectLearnMoreItems().filter((item) =>
+        expandedProjectLearnMoreItems.includes(item.index)
+    );
+
     useEffect(() => {
         console.log(project);
         const timer = setTimeout(() => {
@@ -116,13 +181,33 @@ export default function Show({ groupcontent }) {
                                             {currentproject?.title}
                                         </h2>
                                         <p className="text-black dark:text-white text-sm tracking-wide">
-                                            {currentproject?.description}
+                                            {renderProjectDescription()}
                                         </p>
                                     </div>
 
                                     {/* Content */}
                                     {Array.isArray(currentproject?.topics) && currentproject.topics.map((topic, index) =>
                                         <ShowTopics topic={topic} key={index}></ShowTopics>
+                                    )}
+
+                                    {visibleProjectLearnMoreItems.length > 0 && (
+                                        <div className="px-3 pb-4 space-y-3">
+                                            {visibleProjectLearnMoreItems.map((item) => (
+                                                <div
+                                                    key={item.index}
+                                                    className="rounded-lg border-l-4 border-[#F6940D] bg-orange-50 p-4 text-sm text-gray-700"
+                                                >
+                                                    {item.title && (
+                                                        <h4 className="mb-2 font-bold text-[#3A3A3A]">
+                                                            {item.title}
+                                                        </h4>
+                                                    )}
+                                                    <p className="whitespace-pre-line">
+                                                        {item.body}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     )}
 
                                 </div>

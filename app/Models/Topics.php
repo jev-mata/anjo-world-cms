@@ -42,6 +42,6 @@ class Topics extends Model
     public function topics()
     {
 
-        return $this->hasMany(Topics::class, 'parent_id')->with('topics');
+        return $this->hasMany(Topics::class, 'parent_id')->with(['topics', 'questions.answers']);
     }
 }

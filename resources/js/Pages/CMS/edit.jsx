@@ -123,7 +123,7 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
     };
 
     const handleSaveAll = async (e) => {
-        e.preventDefault();
+        e?.preventDefault();
         try {
             const formData = new FormData();
             
@@ -133,7 +133,7 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                 
                 // Append basic tab data
                 formData.append(`${baseKey}[title]`, tab.title);
-                formData.append(`${baseKey}[id]`, tab.id);
+                formData.append(`${baseKey}[id]`, tab.id ?? "");
                 formData.append(`${baseKey}[tab_title]`, tab.tab_title);
                 formData.append(`${baseKey}[color]`, tab.color);
                 formData.append(`${baseKey}[group_contents_id]`, projectSelected);
@@ -155,12 +155,6 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
                     appendTopicsToFormData(formData, tab.topics, `${baseKey}[topics]`);
                 }
             });
-    
-            // Debug: Check what's in formData
-            console.log('=== FORM DATA CONTENTS ===');
-            for (const [key, value] of formData.entries()) {
-                console.log(key, value instanceof File ? `File: ${value.name}` : value);
-            }
     
             // Send request
             const response = await axios.post("/projects", formData, {

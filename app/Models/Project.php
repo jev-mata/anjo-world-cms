@@ -28,7 +28,9 @@ class Project extends Model
 
     public function topics()
     {
-        return $this->hasMany(Topics::class, 'content_id')->with('topics')->where('parent_id', '=', null);
+        return $this->hasMany(Topics::class, 'content_id')
+            ->with(['topics', 'questions.answers'])
+            ->where('parent_id', '=', null);
     }
 
 }
