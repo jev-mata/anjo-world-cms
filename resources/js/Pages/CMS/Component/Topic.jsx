@@ -14,6 +14,36 @@ export default function Topic({
 }) {
     const [preview, setPreview] = useState(null);
 
+    const learnMoreItems = Array.isArray(topic.learn_more_items) ? topic.learn_more_items : [];
+
+    const addLearnMoreItem = () => {
+        handleTopicChange(path, "learn_more_items", [
+            ...learnMoreItems,
+            {
+                trigger: "",
+                title: "",
+                body: "",
+            },
+        ]);
+    };
+
+    const updateLearnMoreItem = (itemIndex, field, value) => {
+        const updatedItems = [...learnMoreItems];
+        updatedItems[itemIndex] = {
+            ...updatedItems[itemIndex],
+            [field]: value,
+        };
+        handleTopicChange(path, "learn_more_items", updatedItems);
+    };
+
+    const removeLearnMoreItem = (itemIndex) => {
+        handleTopicChange(
+            path,
+            "learn_more_items",
+            learnMoreItems.filter((_, index) => index !== itemIndex)
+        );
+    };
+
     // Add question to this topic
     const addQuestion = () => {
         const currentQuestions = topic.questions || [];
@@ -150,6 +180,81 @@ export default function Topic({
                         }
                         className="mt-1 w-full px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     ></textarea>
+                </div>
+
+                <div className="border rounded-md p-3 space-y-3 dark:border-gray-600">
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                Learn More
+                            </h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Match text in the description and show the expansion after the questions.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={addLearnMoreItem}
+                            className="shrink-0 text-sm text-indigo-600 hover:underline"
+                        >
+                            + Add
+                        </button>
+                    </div>
+
+                    {learnMoreItems.map((item, itemIndex) => (
+                        <div
+                            key={itemIndex}
+                            className="rounded-md border border-gray-200 p-3 space-y-2 dark:border-gray-700"
+                        >
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => removeLearnMoreItem(itemIndex)}
+                                    className="text-xs text-red-500 hover:underline"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs text-gray-600 dark:text-gray-300">
+                                    Clickable text in description
+                                </label>
+                                <input
+                                    type="text"
+                                    value={item.trigger || ""}
+                                    onChange={(e) => updateLearnMoreItem(itemIndex, "trigger", e.target.value)}
+                                    placeholder="Example: (mgh)"
+                                    className="mt-1 w-full px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs text-gray-600 dark:text-gray-300">
+                                    Expansion title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={item.title || ""}
+                                    onChange={(e) => updateLearnMoreItem(itemIndex, "title", e.target.value)}
+                                    placeholder="Example: What mgh means"
+                                    className="mt-1 w-full px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs text-gray-600 dark:text-gray-300">
+                                    Expansion text
+                                </label>
+                                <textarea
+                                    value={item.body || ""}
+                                    onChange={(e) => updateLearnMoreItem(itemIndex, "body", e.target.value)}
+                                    className="mt-1 w-full px-3 py-2 rounded-md border dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    rows={4}
+                                ></textarea>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Video */}

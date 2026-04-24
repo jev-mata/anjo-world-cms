@@ -197,6 +197,7 @@ const Edit = forwardRef(({ projectSelected, onCloseConfirmed }, ref) => {
             formData.append(`${baseKey}[description]`, topic.description ?? "");
             formData.append(`${baseKey}[color]`, topic.color ?? "");
             formData.append(`${baseKey}[video]`, topic.video ?? "");
+            formData.append(`${baseKey}[learn_more_items]`, JSON.stringify(topic.learn_more_items ?? []));
     
             // Handle image - use the correct field name that matches your backend
             if (topic.image instanceof File) {

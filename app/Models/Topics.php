@@ -14,8 +14,13 @@ class Topics extends Model
         'color',
         'video',
         'image_path',
+        'learn_more_items',
         'content_id',
         'parent_id',
+    ];
+
+    protected $casts = [
+        'learn_more_items' => 'array',
     ];
 
     // belongs to Content

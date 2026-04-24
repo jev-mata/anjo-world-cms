@@ -83,6 +83,7 @@ class ProjectController extends Controller
                 'tab_title' => 'nullable|string|max:255',
                 'image' => 'nullable|file|mimes:jpg,jpeg,png|max:200048',
                 'topics' => 'nullable|array',
+                'topics.*.learn_more_items' => 'nullable',
                 'removed_topics' => 'nullable|string',
                 'removed_questions' => 'nullable|string',
                 'removed_answers' => 'nullable|string',
@@ -146,6 +147,7 @@ class ProjectController extends Controller
                 'parent_id' => $parentId,
                 'content_id' => $projectId,
                 'video' => $topicData['video'] ?? null,
+                'learn_more_items' => $this->normalizeLearnMoreItems($topicData['learn_more_items'] ?? []),
             ];
     
             // Handle topic image
@@ -206,6 +208,30 @@ class ProjectController extends Controller
                 $this->saveTopicsRecursive($topicData['topics'], $topic->id, $projectId);
             }
         }
+    }
+
+    protected function normalizeLearnMoreItems($items): array
+    {
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            $items = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        return collect($items)
+            ->map(function ($item) {
+                return [
+                    'trigger' => trim((string) ($item['trigger'] ?? '')),
+                    'title' => trim((string) ($item['title'] ?? '')),
+                    'body' => trim((string) ($item['body'] ?? '')),
+                ];
+            })
+            ->filter(fn ($item) => $item['trigger'] !== '' && $item['body'] !== '')
+            ->values()
+            ->all();
     }
     public function edit_save(Request $request)
     {

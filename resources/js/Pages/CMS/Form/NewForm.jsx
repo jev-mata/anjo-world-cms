@@ -36,6 +36,7 @@ export default function NewForm({
                 title: "",
                 description: "",
                 color: "#000000",
+                learn_more_items: [],
                 topics: [], 
                 questions: [], // Questions are within topics
             },
@@ -102,6 +103,7 @@ export default function NewForm({
             title: "",
             description: "",
             color: "#000000",
+            learn_more_items: [],
             topics: [],
             questions: [] // Questions in subtopics too
         });

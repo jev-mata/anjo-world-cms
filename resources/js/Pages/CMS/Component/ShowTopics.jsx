@@ -1,10 +1,69 @@
-import { useEffect } from "react"
+import { useMemo, useState } from "react"
 
 import ShowQna from "./ShowQna";
 export default function ShowTopics({ topic }) {
-    useEffect(() => {
-        console.log(topic)
-    }, [topic])
+    const [expandedItems, setExpandedItems] = useState([]);
+
+    const learnMoreItems = useMemo(() => {
+        if (!Array.isArray(topic.learn_more_items)) {
+            return [];
+        }
+
+        return topic.learn_more_items
+            .map((item, index) => ({
+                ...item,
+                index,
+                trigger: (item.trigger || "").trim(),
+                body: (item.body || "").trim(),
+            }))
+            .filter((item) => item.trigger && item.body);
+    }, [topic.learn_more_items]);
+
+    const toggleLearnMore = (itemIndex) => {
+        setExpandedItems((current) =>
+            current.includes(itemIndex)
+                ? current.filter((index) => index !== itemIndex)
+                : [...current, itemIndex]
+        );
+    };
+
+    const renderDescription = () => {
+        const description = topic.description || "";
+
+        if (learnMoreItems.length === 0) {
+            return description;
+        }
+
+        const triggers = learnMoreItems
+            .map((item) => item.trigger.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+            .sort((a, b) => b.length - a.length);
+        const pattern = new RegExp(`(${triggers.join("|")})`, "g");
+
+        return description.split(pattern).map((part, index) => {
+            const item = learnMoreItems.find((learnMoreItem) => learnMoreItem.trigger === part);
+
+            if (!item) {
+                return part;
+            }
+
+            const isExpanded = expandedItems.includes(item.index);
+
+            return (
+                <button
+                    key={`${part}-${index}`}
+                    type="button"
+                    onClick={() => toggleLearnMore(item.index)}
+                    className="font-semibold text-[#3A3A3A] underline decoration-2 decoration-[#F6940D] underline-offset-2"
+                    aria-expanded={isExpanded}
+                >
+                    {part}
+                </button>
+            );
+        });
+    };
+
+    const visibleLearnMoreItems = learnMoreItems.filter((item) => expandedItems.includes(item.index));
+
     return (
         <div
             className={`${topic.parent_id != null ? " pl-6 pt-1 pb-1 pr-1 -mx-3 " : " px-4 "} py-2 text-left bg-white rounded-2xl m-2`} style={{
@@ -18,7 +77,7 @@ export default function ShowTopics({ topic }) {
                     {topic.title}
                 </h3>
                 <p className="whitespace-pre-line text-[#828282] font-[500] text-sm mb-4">
-                    {topic.description}
+                    {renderDescription()}
                 </p>
 
                 {topic.video && (
@@ -72,6 +131,26 @@ export default function ShowTopics({ topic }) {
                         <h4 className="font-bold mb-2 text-gray-700">Quiz</h4>
                         {topic.questions.map((q) => (
                             <ShowQna key={q.id} question={q} contentId={topic.id} />
+                        ))}
+                    </div>
+                )}
+
+                {visibleLearnMoreItems.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                        {visibleLearnMoreItems.map((item) => (
+                            <div
+                                key={item.index}
+                                className="rounded-lg border-l-4 border-[#F6940D] bg-orange-50 p-4 text-sm text-gray-700"
+                            >
+                                {item.title && (
+                                    <h4 className="mb-2 font-bold text-[#3A3A3A]">
+                                        {item.title}
+                                    </h4>
+                                )}
+                                <p className="whitespace-pre-line">
+                                    {item.body}
+                                </p>
+                            </div>
                         ))}
                     </div>
                 )}
