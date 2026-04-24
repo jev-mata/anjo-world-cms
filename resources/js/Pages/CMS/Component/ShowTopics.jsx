@@ -4,6 +4,7 @@ import ShowQna from "./ShowQna";
 export default function ShowTopics({ topic }) {
     const [expandedItems, setExpandedItems] = useState([]);
     const topicColor = topic.color && topic.color !== "#000000" ? topic.color : "";
+const learnMoreTriggerClass = "mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-300 bg-yellow-100 px-2 py-0.5 align-baseline font-extrabold text-[#7A3D00] shadow-[0_3px_0_#F6940D] transition hover:-translate-y-0.5 hover:bg-yellow-200 hover:shadow-[0_4px_0_#F6940D] focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 active:translate-y-0 active:shadow-[0_1px_0_#F6940D]";
 
     const learnMoreItems = useMemo(() => {
         if (!Array.isArray(topic.learn_more_items)) {
@@ -54,10 +55,16 @@ export default function ShowTopics({ topic }) {
                     key={`${part}-${index}`}
                     type="button"
                     onClick={() => toggleLearnMore(item.index)}
-                    className="font-semibold text-[#3A3A3A] underline decoration-2 decoration-[#F6940D] underline-offset-2"
+                    className={learnMoreTriggerClass}
                     aria-expanded={isExpanded}
                 >
-                    {part}
+                  <span>{part}</span>
+                    <span
+                        aria-hidden="true"
+                        className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#F6940D] text-[10px] leading-none text-white"
+                    >
+                        ?
+                    </span>
                 </button>
             );
         });
@@ -68,7 +75,7 @@ export default function ShowTopics({ topic }) {
     return (
         <div
             className={`${topic.parent_id != null ? " pl-6 pt-1 pb-1 pr-1 -mx-3 " : " px-4 "} py-2 text-left bg-white rounded-2xl m-2`} style={{
-                backgroundColor: topicColor,
+               
             }}
         >
             <div

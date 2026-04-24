@@ -10,6 +10,7 @@ export default function Show({ groupcontent }) {
     const [currentproject, setcurrentproject] = useState(project[0]);
     const [selectLevel, setSelectLevel] = useState(-1);
     const [isLoading, setIsLoading] = useState(true);
+  const learnMoreTriggerClass = "mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-300 bg-yellow-100 px-2 py-0.5 align-baseline font-extrabold text-[#7A3D00] shadow-[0_3px_0_#F6940D] transition hover:-translate-y-0.5 hover:bg-yellow-200 hover:shadow-[0_4px_0_#F6940D] focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 active:translate-y-0 active:shadow-[0_1px_0_#F6940D]";
 
     const [activeTab, setActiveTab] = useState(project.length != 0 ? project[0].id : 0);
 
@@ -81,10 +82,16 @@ export default function Show({ groupcontent }) {
                     key={`${part}-${index}`}
                     type="button"
                     onClick={() => toggleProjectLearnMore(item.index)}
-                    className="font-semibold text-black underline decoration-2 decoration-[#F6940D] underline-offset-2 dark:text-white"
+                    className={learnMoreTriggerClass}
                     aria-expanded={expandedProjectLearnMoreItems.includes(item.index)}
                 >
-                    {part}
+                     <span>{part}</span>
+                    <span
+                        aria-hidden="true"
+                        className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#F6940D] text-[10px] leading-none text-white"
+                    >
+                        ?
+                    </span>
                 </button>
             );
         });
